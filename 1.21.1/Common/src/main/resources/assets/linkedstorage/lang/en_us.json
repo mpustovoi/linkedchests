@@ -1,9 +1,0 @@
-{
-  "container.linkedstorage": "Linked Storage",
-  "itemGroup.linkedstorage.linkedstorage": "Linked Storage",
-  "item.linkedstorage.storageitem": "Handheld Storage",
-  "block.linkedstorage.storageblock": "Storage Block",
-  "text.linkeditem.channel": "Dye Channel: %s",
-  "text.linkeditem.playerdyechannel": "Playerbound: %s",
-  "text.linkeditem.unknownplayerdyechannel": "Unknown"
-}
