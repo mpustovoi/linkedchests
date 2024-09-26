@@ -2,8 +2,8 @@ package fuzs.linkedchests;
 
 import fuzs.linkedchests.config.ServerConfig;
 import fuzs.linkedchests.init.ModRegistry;
-import fuzs.linkedchests.network.ChannelViewers;
-import fuzs.linkedchests.network.UpdateViewerList;
+import fuzs.linkedchests.network.UpdateLidControllerMessage;
+import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.linkedchests.world.level.block.entity.DyeChannelManager;
 import fuzs.puzzleslib.api.config.v3.ConfigHolder;
 import fuzs.puzzleslib.api.core.v1.ModConstructor;
@@ -20,18 +20,19 @@ public class LinkedChests implements ModConstructor {
     public static final String MOD_NAME = "Linked Chests";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    public static final NetworkHandler NETWORK = NetworkHandler.builder(MOD_ID).registerClientbound(
-            UpdateViewerList.class);
+    public static final NetworkHandler NETWORK = NetworkHandler.builder(MOD_ID).registerSerializer(DyeChannel.class,
+            DyeChannel.STREAM_CODEC
+    ).registerClientbound(UpdateLidControllerMessage.class);
     public static final ConfigHolder CONFIG = ConfigHolder.builder(MOD_ID).server(ServerConfig.class);
 
     @Override
     public void onConstructMod() {
+        ModRegistry.bootstrap();
         registerEventHandlers();
     }
 
     private static void registerEventHandlers() {
         DyeChannelManager.registerEventHandlers();
-        ChannelViewers.registerChannelWatcher();
     }
 
     @Override

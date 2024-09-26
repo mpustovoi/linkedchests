@@ -1,0 +1,6 @@
+{
+  "block.linkedchests.linked_chest": "Linked Chest",
+  "block.linkedchests.linked_chest.description": "Grants access to items stored in interdimensional realms.",
+  "item.linkedchests.linked_storage": "Linked Storage",
+  "itemGroup.linkedchests.main": "Linked Chests"
+}

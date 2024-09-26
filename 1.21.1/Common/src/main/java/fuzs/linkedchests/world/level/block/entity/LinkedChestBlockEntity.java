@@ -1,10 +1,10 @@
 package fuzs.linkedchests.world.level.block.entity;
 
 import fuzs.linkedchests.LinkedChests;
+import fuzs.linkedchests.client.handler.DyeChannelLidController;
 import fuzs.linkedchests.init.ModRegistry;
-import fuzs.puzzleslib.api.block.v1.entity.TickingBlockEntity;
-import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
 import fuzs.linkedchests.world.inventory.LinkedMenu;
+import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -13,6 +13,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,18 +22,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.ChestLidController;
 import net.minecraft.world.level.block.entity.LidBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class LinkedChestBlockEntity extends BlockEntity implements ListBackedContainer, MenuProvider, LidBlockEntity, TickingBlockEntity {
+public class LinkedChestBlockEntity extends BlockEntity implements ListBackedContainer, MenuProvider, LidBlockEntity {
     static final String KEY_DYE_CHANNEL = LinkedChests.id("dye_channel").toString();
 
-    private final ChestLidController chestLidController = new ChestLidController();
-    private DyeChannel dyeChannel = DyeChannel.DEFAULT_CHANNEL;
+    private DyeChannel dyeChannel = DyeChannel.DEFAULT;
     @Nullable
     private DyeChannelStorage storage;
 
@@ -44,7 +44,7 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
         super.loadAdditional(compoundTag, registries);
         this.dyeChannel = DyeChannel.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE),
                 compoundTag.getCompound(KEY_DYE_CHANNEL)
-        ).resultOrPartial(LinkedChests.LOGGER::error).orElse(DyeChannel.DEFAULT_CHANNEL);
+        ).resultOrPartial(LinkedChests.LOGGER::error).orElse(DyeChannel.DEFAULT);
     }
 
     @Override
@@ -55,9 +55,8 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
                 .ifPresent(tag -> compoundTag.put(KEY_DYE_CHANNEL, tag));
     }
 
-    @Override
-    public void clientTick() {
-        this.chestLidController.tickLid();
+    public DyeChannel getDyeChannel() {
+        return this.dyeChannel;
     }
 
     public void setDyeChannel(DyeChannel dyeChannel) {
@@ -72,9 +71,7 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     private DyeChannelStorage getStorage() {
         DyeChannelStorage storage = this.storage;
         if (storage == null) {
-            return this.storage = DyeChannelManager.getStorage(this.dyeChannel,
-                    !this.hasLevel() || this.getLevel().isClientSide
-            );
+            return this.storage = DyeChannelManager.getStorage(this.dyeChannel);
         } else {
             return storage;
         }
@@ -82,11 +79,9 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
 
     private void markUpdated() {
         this.setChanged();
-        this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
-    }
-
-    public DyeChannel getDyeChannel() {
-        return this.dyeChannel;
+        if (this.hasLevel()) {
+            this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
+        }
     }
 
     @Override
@@ -100,29 +95,19 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     }
 
     @Override
-    public boolean triggerEvent(int id, int type) {
-        if (id == 1) {
-            this.chestLidController.shouldBeOpen(type > 0);
-            return true;
-        } else {
-            return super.triggerEvent(id, type);
-        }
-    }
-
-    @Override
     public void startOpen(Player player) {
-        if (!this.remove && !player.isSpectator()) {
-            this.getStorage().openersCounter().incrementOpeners(player, this.getLevel(), this.getBlockPos(),
-                    this.getBlockState()
+        if (!this.remove && player instanceof ServerPlayer serverPlayer && !player.isSpectator()) {
+            this.getStorage().openersCounter().incrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(),
+                    SoundSource.BLOCKS
             );
         }
     }
 
     @Override
     public void stopOpen(Player player) {
-        if (!this.remove && !player.isSpectator()) {
-            this.getStorage().openersCounter().decrementOpeners(player, this.getLevel(), this.getBlockPos(),
-                    this.getBlockState()
+        if (!this.remove && player instanceof ServerPlayer serverPlayer && !player.isSpectator()) {
+            this.getStorage().openersCounter().decrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(),
+                    SoundSource.BLOCKS
             );
         }
     }
@@ -132,17 +117,13 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
         return Container.stillValidBlockEntity(this, player);
     }
 
-    public void recheckOpen() {
-        if (!this.remove) {
-            this.getStorage().openersCounter().recheckOpeners(this.getLevel(), this.getBlockPos(),
-                    this.getBlockState()
-            );
-        }
-    }
-
     @Override
     public float getOpenNess(float partialTicks) {
-        return this.chestLidController.getOpenness(partialTicks);
+        if (this.hasLevel() && this.getLevel().isClientSide) {
+            return DyeChannelLidController.getChestLidController(this.dyeChannel).getOpenness(partialTicks);
+        } else {
+            return 0.0F;
+        }
     }
 
     @Override

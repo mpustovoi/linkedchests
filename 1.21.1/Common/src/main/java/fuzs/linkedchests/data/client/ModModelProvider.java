@@ -14,7 +14,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Blocks;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ModModelProvider extends AbstractModelProvider {
     public static final ModelTemplate CHEST_TEMPLATE = new ModelTemplate(
@@ -36,35 +35,50 @@ public class ModModelProvider extends AbstractModelProvider {
     @Override
     public void addItemModels(ItemModelGenerators builder) {
         CHEST_TEMPLATE.create(ModelLocationUtils.getModelLocation(ModRegistry.LINKED_CHEST_ITEM.value()),
-                TextureMapping.particle(Blocks.NETHER_BRICKS), builder.output
+                TextureMapping.particle(Blocks.END_STONE), builder.output
         );
-        createLinkedStorageItem(builder, ModRegistry.LINKED_STORAGE_ITEM.value(), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, false);
-        createLinkedStorageItem(builder, ModRegistry.LINKED_STORAGE_ITEM.value(), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, true);
+        createLinkedStorageItem(builder, ModRegistry.LINKED_STORAGE_ITEM.value(),
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, false
+        );
+        createLinkedStorageItem(builder, ModRegistry.LINKED_STORAGE_ITEM.value(),
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, true
+        );
     }
 
     private static void createLinkedStorageItem(ItemModelGenerators builder, Item item, ResourceLocation itemModelProperty, boolean isOverride) {
         String suffix = "_" + itemModelProperty.getPath();
         ResourceLocation modelLocation = getModelLocation(item).withSuffix(isOverride ? suffix : "");
-        Stream<String> stream = Stream.of("_button1", "_button2", "_button3", "_latch");
-        if (isOverride) stream = stream.map(s -> s + suffix);
-        TextureMapping textureMapping = layered(modelLocation, stream.toArray(String[]::new));
+        TextureSlot[] textureSlots = createTextureSlotLayers(5);
+        TextureMapping textureMapping = layered(modelLocation, textureSlots, "_button1", "_button2", "_button3",
+                "_latch"
+        );
+        ModelTemplate modelTemplate = ModelTemplates.createItem("generated", textureSlots);
         if (isOverride) {
-            ModelTemplates.FLAT_ITEM.create(modelLocation, textureMapping, builder.output);
+            modelTemplate.create(modelLocation, textureMapping, builder.output);
         } else {
-            ItemModelProperties itemModelProperties = ItemModelProperties.singleOverride(modelLocation.withSuffix(suffix),
-                    itemModelProperty, 1.0F
-            );
+            ItemModelProperties itemModelProperties = ItemModelProperties.singleOverride(
+                    modelLocation.withSuffix(suffix), itemModelProperty, 1.0F);
             ModelTemplate.JsonFactory jsonFactory = ItemModelProperties.overridesFactory(ModelTemplates.FLAT_ITEM,
                     itemModelProperties
             );
-            ModelTemplates.FLAT_ITEM.create(modelLocation, textureMapping, builder.output, jsonFactory);
+            modelTemplate.create(modelLocation, textureMapping, builder.output, jsonFactory);
         }
     }
 
-    public static TextureMapping layered(ResourceLocation resourceLocation, String... layerSuffixes) {
-        TextureMapping textureMapping = new TextureMapping().put(TextureSlot.LAYER0, resourceLocation);
-        for (int i = 0; i < layerSuffixes.length; i++) {
-            textureMapping.put(TextureSlot.create("layer" + ++i), resourceLocation.withSuffix(layerSuffixes[i]));
+    public static TextureSlot[] createTextureSlotLayers(int size) {
+        TextureSlot[] textureSlots = new TextureSlot[size];
+        for (int i = 0; i < textureSlots.length; i++) {
+            textureSlots[i] = TextureSlot.create("layer" + i);
+        }
+        return textureSlots;
+    }
+
+    public static TextureMapping layered(ResourceLocation resourceLocation, TextureSlot[] textureSlots, String... layerSuffixes) {
+        TextureMapping textureMapping = new TextureMapping();
+        for (int i = 0; i < textureSlots.length; i++) {
+            ResourceLocation textureLocation = i == 0 ? resourceLocation : resourceLocation.withSuffix(
+                    layerSuffixes[i - 1]);
+            textureMapping.put(textureSlots[i], textureLocation);
         }
         return textureMapping;
     }

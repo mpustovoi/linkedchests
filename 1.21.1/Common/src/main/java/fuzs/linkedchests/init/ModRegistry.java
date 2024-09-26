@@ -3,12 +3,12 @@ package fuzs.linkedchests.init;
 import fuzs.linkedchests.LinkedChests;
 import fuzs.linkedchests.world.inventory.LinkedMenu;
 import fuzs.linkedchests.world.item.LinkedStorageItem;
+import fuzs.linkedchests.world.item.crafting.DyeChannelRecipe;
+import fuzs.linkedchests.world.item.crafting.ShapedDyeChannelRecipe;
 import fuzs.linkedchests.world.level.block.LinkedChestBlock;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
 import fuzs.puzzleslib.api.init.v3.registry.RegistryManager;
-import fuzs.linkedchests.world.item.crafting.DyeChannelRecipe;
-import fuzs.linkedchests.world.item.crafting.ShapedDyeChannelRecipe;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -38,12 +38,12 @@ public class ModRegistry {
     public static final Holder.Reference<Item> LINKED_CHEST_ITEM = REGISTRIES.registerItem(
             LINKED_CHEST_BLOCK.unwrapKey().orElseThrow().location().getPath(),
             () -> new BlockItem(LINKED_CHEST_BLOCK.value(),
-                    new Item.Properties().component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT_CHANNEL)
+                    new Item.Properties().component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT)
             )
     );
     public static final Holder.Reference<Item> LINKED_STORAGE_ITEM = REGISTRIES.registerItem("linked_storage",
             () -> new LinkedStorageItem(new Item.Properties().stacksTo(1)
-                    .component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT_CHANNEL))
+                    .component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT))
     );
     public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_CHEST_MENU_TYPE = REGISTRIES.registerMenuType(
             "linked_chest", () -> {
@@ -68,7 +68,7 @@ public class ModRegistry {
     public static final Holder.Reference<RecipeSerializer<ShapedDyeChannelRecipe>> SHAPED_DYE_CHANNEL_RECIPE_SERIALIZER = REGISTRIES.register(
             Registries.RECIPE_SERIALIZER, "crafting_shaped_dye_channel", () -> new ShapedDyeChannelRecipe.Serializer());
 
-    public static void touch() {
+    public static void bootstrap() {
         // NO-OP
     }
 }

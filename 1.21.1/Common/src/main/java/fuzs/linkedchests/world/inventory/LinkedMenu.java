@@ -11,7 +11,7 @@ public class LinkedMenu extends ChestMenu {
 
     public static MenuType.MenuSupplier<LinkedMenu> createSupplier(boolean personalChannel, boolean lockSelectedSlot) {
         return (int containerId, Inventory inventory) -> {
-            Container container = new SimpleContainer(DyeChannel.getInventoryRows(personalChannel));
+            Container container = new SimpleContainer(DyeChannel.getContainerSize(personalChannel));
             return new LinkedMenu(containerId, inventory, container, personalChannel, lockSelectedSlot);
         };
     }

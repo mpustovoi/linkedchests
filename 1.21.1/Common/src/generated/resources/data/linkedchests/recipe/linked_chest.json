@@ -1,0 +1,27 @@
+{
+  "type": "linkedchests:crafting_shaped_dye_channel",
+  "category": "misc",
+  "key": {
+    "#": {
+      "item": "minecraft:end_stone"
+    },
+    "@": {
+      "item": "minecraft:ender_eye"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "W": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "pattern": [
+    "@W@",
+    "#C#",
+    "@#@"
+  ],
+  "result": {
+    "count": 1,
+    "id": "linkedchests:linked_chest"
+  }
+}

@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor rightColor, Optional<UUID> uuid) {
-    public static final DyeChannel DEFAULT_CHANNEL = new DyeChannel(DyeColor.WHITE);
+    public static final DyeChannel DEFAULT = new DyeChannel(DyeColor.WHITE);
     public static final Codec<DyeChannel> CODEC = RecordCodecBuilder.create(
             instance -> instance.group(DyeColor.CODEC.listOf()
                             .validate(list -> Util.fixedSize(list, 3))
@@ -31,8 +31,8 @@ public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor righ
                         return new DyeChannel(colors.get(0), colors.get(1), colors.get(2), uuid);
                     }));
     public static final StreamCodec<ByteBuf, DyeChannel> STREAM_CODEC = StreamCodec.composite(DyeColor.STREAM_CODEC,
-            DyeChannel::leftColor, DyeColor.STREAM_CODEC, DyeChannel::leftColor, DyeColor.STREAM_CODEC,
-            DyeChannel::leftColor, UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs::optional), DyeChannel::uuid,
+            DyeChannel::leftColor, DyeColor.STREAM_CODEC, DyeChannel::middleColor, DyeColor.STREAM_CODEC,
+            DyeChannel::rightColor, UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs::optional), DyeChannel::uuid,
             DyeChannel::new
     );
 
@@ -50,15 +50,27 @@ public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor righ
     }
 
     public DyeChannel withLeftColor(DyeColor leftColor) {
-        return new DyeChannel(leftColor, this.middleColor, this.rightColor, this.uuid);
+        if (leftColor != this.leftColor) {
+            return new DyeChannel(leftColor, this.middleColor, this.rightColor, this.uuid);
+        } else {
+            return this;
+        }
     }
 
     public DyeChannel withMiddleColor(DyeColor middleColor) {
-        return new DyeChannel(this.leftColor, middleColor, this.rightColor, this.uuid);
+        if (middleColor != this.middleColor) {
+            return new DyeChannel(this.leftColor, middleColor, this.rightColor, this.uuid);
+        } else {
+            return this;
+        }
     }
 
     public DyeChannel withRightColor(DyeColor rightColor) {
-        return new DyeChannel(this.leftColor, this.middleColor, rightColor, this.uuid);
+        if (rightColor != this.rightColor) {
+            return new DyeChannel(this.leftColor, this.middleColor, rightColor, this.uuid);
+        } else {
+            return this;
+        }
     }
 
     public DyeChannel withUUID(@Nullable UUID uuid) {
@@ -66,15 +78,17 @@ public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor righ
     }
 
     public DyeChannelStorage createStorage() {
-        return new DyeChannelStorage(getInventoryRows(this.uuid.isPresent()));
+        return new DyeChannelStorage(getContainerSize(this.uuid.isPresent()));
     }
 
-    public static int getInventoryRows(boolean personalChannel) {
+    public static int getContainerSize(boolean personalChannel) {
+        int inventoryRows;
         if (personalChannel) {
-            return LinkedChests.CONFIG.get(ServerConfig.class).personalInventoryRows;
+            inventoryRows = LinkedChests.CONFIG.get(ServerConfig.class).personalInventoryRows;
         } else {
-            return LinkedChests.CONFIG.get(ServerConfig.class).inventoryRows;
+            inventoryRows = LinkedChests.CONFIG.get(ServerConfig.class).inventoryRows;
         }
+        return inventoryRows * 9;
     }
 
     public static DyeColor getDyeColor(Item item) {

@@ -73,7 +73,7 @@ public class DyeChannelRecipe extends CustomRecipe {
             this.iterateDyeItems(craftingInput, positionedItem.posX(), positionedItem.posY(),
                     (DyeColor dyeColor, int value) -> {
                         DyeChannel dyeChannel = itemStack.getOrDefault(
-                                ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT_CHANNEL);
+                                ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT);
                         itemStack.set(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
                                 dyeChannel.withColorAt(value, dyeColor)
                         );

@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "linkedchests:item/linked_storage_open",
+    "layer1": "linkedchests:item/linked_storage_open_button1",
+    "layer2": "linkedchests:item/linked_storage_open_button2",
+    "layer3": "linkedchests:item/linked_storage_open_button3",
+    "layer4": "linkedchests:item/linked_storage_open_latch"
+  }
+}

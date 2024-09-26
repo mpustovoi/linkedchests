@@ -27,17 +27,17 @@ public final class CodecExtras {
 
     public static <T> Codec<NonNullList<T>> nonNullList(Codec<T> codec, Predicate<T> filter, @Nullable T defaultValue) {
         return RecordCodecBuilder.create(instance -> {
-            return instance.group(ExtraCodecs.POSITIVE_INT.fieldOf("size").forGetter(NonNullList::size), Codec.mapPair(
-                            ExtraCodecs.POSITIVE_INT.fieldOf("slot"), codec.fieldOf("item"))
-                    .codec()
-                    .listOf()
-                    .fieldOf("items")
-                    .forGetter((NonNullList<T> items) -> {
-                        return IntStream.range(0, items.size())
-                                .mapToObj(index -> new Pair<>(index, items.get(index)))
-                                .filter(pair -> filter.test(pair.getSecond()))
-                                .toList();
-                    })).apply(instance, (Integer size, List<Pair<Integer, T>> items) -> {
+            return instance.group(ExtraCodecs.NON_NEGATIVE_INT.fieldOf("size").forGetter(NonNullList::size),
+                    Codec.mapPair(ExtraCodecs.NON_NEGATIVE_INT.fieldOf("slot"), codec.fieldOf("item"))
+                            .codec()
+                            .listOf()
+                            .fieldOf("items")
+                            .forGetter((NonNullList<T> items) -> {
+                                return IntStream.range(0, items.size()).mapToObj(
+                                        index -> new Pair<>(index, items.get(index))).filter(
+                                        pair -> filter.test(pair.getSecond())).toList();
+                            })
+            ).apply(instance, (Integer size, List<Pair<Integer, T>> items) -> {
                 NonNullList<T> nonNullList = defaultValue != null ? NonNullList.withSize(size, defaultValue) :
                         NonNullList.createWithCapacity(size);
                 for (Pair<Integer, T> pair : items) {

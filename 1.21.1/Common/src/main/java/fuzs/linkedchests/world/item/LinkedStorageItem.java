@@ -1,14 +1,12 @@
 package fuzs.linkedchests.world.item;
 
 import fuzs.linkedchests.init.ModRegistry;
+import fuzs.linkedchests.world.inventory.DyeChannelContainer;
+import fuzs.linkedchests.world.inventory.LinkedMenu;
 import fuzs.linkedchests.world.level.block.LinkedChestBlock;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
-import fuzs.linkedchests.world.level.block.entity.DyeChannelManager;
 import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
-import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
 import fuzs.puzzleslib.api.core.v1.Proxy;
-import fuzs.linkedchests.world.inventory.LinkedMenu;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -51,11 +49,11 @@ public class LinkedStorageItem extends Item {
         ItemStack itemInHand = player.getItemInHand(interactionHand);
         if (!level.isClientSide) {
             DyeChannel dyeChannel = itemInHand.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
-                    DyeChannel.DEFAULT_CHANNEL
+                    DyeChannel.DEFAULT
             );
-            NonNullList<ItemStack> items = DyeChannelManager.getStorage(dyeChannel, false).items();
             player.openMenu(new SimpleMenuProvider((int containerId, Inventory inventory, Player player1) -> {
-                return new LinkedMenu(containerId, inventory, ListBackedContainer.of(items), dyeChannel.uuid().isPresent(), true);
+                DyeChannelContainer container = new DyeChannelContainer(dyeChannel);
+                return new LinkedMenu(containerId, inventory, container, dyeChannel.uuid().isPresent(), true);
             }, this.getDescription()));
         }
         return InteractionResultHolder.sidedSuccess(itemInHand, level.isClientSide);

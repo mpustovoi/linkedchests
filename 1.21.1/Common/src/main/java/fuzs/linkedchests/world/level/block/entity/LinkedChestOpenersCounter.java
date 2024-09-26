@@ -1,105 +1,93 @@
 package fuzs.linkedchests.world.level.block.entity;
 
+import fuzs.linkedchests.LinkedChests;
+import fuzs.linkedchests.network.UpdateLidControllerMessage;
 import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
+import fuzs.puzzleslib.api.network.v3.PlayerSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 
 import java.util.List;
 import java.util.function.Predicate;
 
-public class LinkedChestOpenersCounter extends ContainerOpenersCounter {
+public class LinkedChestOpenersCounter {
     private final Predicate<NonNullList<ItemStack>> containerChecker;
     private int openCount;
+    private boolean scheduleRecheck;
 
     public LinkedChestOpenersCounter(Predicate<NonNullList<ItemStack>> containerChecker) {
         this.containerChecker = containerChecker;
     }
 
-    @Override
-    protected void onOpen(Level level, BlockPos pos, BlockState state) {
-        level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.ENDER_CHEST_OPEN,
-                SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F
+    protected void openerCountChanged(DyeChannel dyeChannel, MinecraftServer server, int openCount) {
+        LinkedChests.NETWORK.sendMessage(PlayerSet.ofAll(server),
+                new UpdateLidControllerMessage(dyeChannel, openCount > 0)
         );
     }
 
-    @Override
-    protected void onClose(Level level, BlockPos pos, BlockState state) {
-        level.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.ENDER_CHEST_CLOSE,
-                SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F
-        );
-    }
-
-    @Override
-    protected void openerCountChanged(Level level, BlockPos pos, BlockState state, int count, int openCount) {
-        level.blockEvent(pos, state.getBlock(), 1, openCount);
-    }
-
-    @Override
     protected boolean isOwnContainer(Player player) {
         return player.containerMenu instanceof ChestMenu chestMenu &&
                 chestMenu.getContainer() instanceof ListBackedContainer container && this.containerChecker.test(
                 container.getContainerItems());
     }
 
-    public void incrementOpeners(Player player, Level level, BlockPos pos, BlockState state) {
-        int i = this.openCount++;
-        if (i == 0) {
-            this.onOpen(level, pos, state);
-            level.gameEvent(player, GameEvent.CONTAINER_OPEN, pos);
-            scheduleRecheck(level, pos, state);
+    public void incrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer) {
+        this.incrementOpeners(dyeChannel, serverPlayer, serverPlayer.blockPosition(), serverPlayer.getSoundSource());
+    }
+
+    public void incrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer, BlockPos pos, SoundSource soundSource) {
+        ServerLevel serverLevel = serverPlayer.serverLevel();
+        if (this.openCount++ == 0) {
+            serverLevel.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                    SoundEvents.ENDER_CHEST_OPEN, soundSource, 0.5F, serverLevel.random.nextFloat() * 0.1F + 0.9F
+            );
+            serverLevel.gameEvent(serverPlayer, GameEvent.CONTAINER_OPEN, pos);
+            this.scheduleRecheck = true;
         }
 
-        this.openerCountChanged(level, pos, state, i, this.openCount);
+        this.openerCountChanged(dyeChannel, serverLevel.getServer(), this.openCount);
     }
 
-    private List<? extends Player> getPlayersWithContainerOpen(Level level, BlockPos pos) {
-        return ((ServerLevel) level).getServer().getPlayerList().getPlayers().stream().filter(this::isOwnContainer).toList();
+    public void decrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer) {
+        this.decrementOpeners(dyeChannel, serverPlayer, serverPlayer.blockPosition(), serverPlayer.getSoundSource());
     }
 
-    public void recheckOpeners(Level level, BlockPos pos, BlockState state) {
-        List<? extends Player> list = this.getPlayersWithContainerOpen(level, pos);
+    public void decrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer, BlockPos pos, SoundSource soundSource) {
+        ServerLevel serverLevel = serverPlayer.serverLevel();
+        if (--this.openCount == 0) {
+            serverLevel.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                    SoundEvents.ENDER_CHEST_CLOSE, soundSource, 0.5F, serverLevel.random.nextFloat() * 0.1F + 0.9F
+            );
+            serverLevel.gameEvent(serverPlayer, GameEvent.CONTAINER_CLOSE, pos);
+        }
 
-        int i = list.size();
-        int j = this.openCount;
-        if (j != i) {
-            boolean bl = i != 0;
-            boolean bl2 = j != 0;
-            if (bl && !bl2) {
-                this.onOpen(level, pos, state);
-                level.gameEvent(null, GameEvent.CONTAINER_OPEN, pos);
-            } else if (!bl) {
-                this.onClose(level, pos, state);
-                level.gameEvent(null, GameEvent.CONTAINER_CLOSE, pos);
+        this.openerCountChanged(dyeChannel, serverLevel.getServer(), this.openCount);
+    }
+
+    public void recheckOpeners(DyeChannel dyeChannel, MinecraftServer server) {
+        if (this.scheduleRecheck) {
+            this.scheduleRecheck = false;
+            int playersWithContainerOpen = this.getPlayersWithContainerOpen(server).size();
+            if (this.openCount != playersWithContainerOpen) {
+                this.openCount = playersWithContainerOpen;
+                this.openerCountChanged(dyeChannel, server, playersWithContainerOpen);
             }
-
-            this.openCount = i;
-        }
-
-        this.openerCountChanged(level, pos, state, j, i);
-        if (i > 0) {
-            scheduleRecheck(level, pos, state);
+            if (this.openCount > 0) {
+                this.scheduleRecheck = true;
+            }
         }
     }
 
-    public int getOpenerCount() {
-        return this.openCount;
-    }
-
-    private static void scheduleRecheck(Level level, BlockPos pos, BlockState state) {
-        MinecraftServer server = ((ServerLevel) level).getServer();
-        server.tell(new TickTask(server.getTickCount() + 5, ));
-        level.scheduleTick(pos, state.getBlock(), 5);
+    private List<? extends Player> getPlayersWithContainerOpen(MinecraftServer server) {
+        return server.getPlayerList().getPlayers().stream().filter(this::isOwnContainer).toList();
     }
 }

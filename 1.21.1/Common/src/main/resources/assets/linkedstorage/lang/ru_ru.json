@@ -1,7 +1,0 @@
-{
-  "container.linkedstorage": "Объединённое хранилище",
-  "itemGroup.linkedstorage.linkedstorage": "Объединённое хранилище",
-  "item.linkedstorage.storageitem": "Портативное хранилище",
-  "block.linkedstorage.storageblock": "Блок-хранилище",
-  "text.linkeditem.channel": "Установлено на: %s"
-}
