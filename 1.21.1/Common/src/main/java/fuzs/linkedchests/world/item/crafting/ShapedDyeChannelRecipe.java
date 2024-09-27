@@ -9,6 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -21,8 +22,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ShapedDyeChannelRecipe extends ShapedRecipe {
-    private static final Map<ItemLike, DyeColor> DYE_BY_ITEM = Sheep.ITEM_BY_DYE.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey, (o1, o2) -> o1, IdentityHashMap::new));
+    private static final Map<Item, DyeColor> DYE_BY_ITEM = Sheep.ITEM_BY_DYE.entrySet().stream().collect(
+            Collectors.toMap((Map.Entry<DyeColor, ItemLike> entry) -> entry.getValue().asItem(), Map.Entry::getKey,
+                    (o1, o2) -> o1, IdentityHashMap::new
+            ));
 
     public ShapedDyeChannelRecipe(ShapedRecipe shapedRecipe) {
         super(shapedRecipe.getGroup(), shapedRecipe.category(), shapedRecipe.pattern,
@@ -33,6 +36,7 @@ public class ShapedDyeChannelRecipe extends ShapedRecipe {
     @Override
     public ItemStack assemble(CraftingInput craftingInput, HolderLookup.Provider registries) {
         ItemStack itemStack = super.assemble(craftingInput, registries);
+        // if there is a wool block somewhere in here copy the color from that for the dye channel data
         for (ItemStack input : craftingInput.items()) {
             DyeColor dyeColor = DYE_BY_ITEM.get(input.getItem());
             if (dyeColor != null) {
@@ -57,7 +61,9 @@ public class ShapedDyeChannelRecipe extends ShapedRecipe {
 
         @Override
         public StreamCodec<RegistryFriendlyByteBuf, ShapedDyeChannelRecipe> streamCodec() {
-            return ShapedRecipe.Serializer.SHAPED_RECIPE.streamCodec().map(ShapedDyeChannelRecipe::new, Function.identity());
+            return ShapedRecipe.Serializer.SHAPED_RECIPE.streamCodec().map(ShapedDyeChannelRecipe::new,
+                    Function.identity()
+            );
         }
     }
 }

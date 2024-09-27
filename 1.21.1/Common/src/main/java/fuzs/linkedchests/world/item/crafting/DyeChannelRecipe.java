@@ -2,9 +2,10 @@ package fuzs.linkedchests.world.item.crafting;
 
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -14,7 +15,10 @@ import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.ObjIntConsumer;
+import java.util.stream.Collectors;
 
 public class DyeChannelRecipe extends CustomRecipe {
 
@@ -26,13 +30,31 @@ public class DyeChannelRecipe extends CustomRecipe {
     public boolean matches(CraftingInput craftingInput, Level level) {
         PositionedItem positionedItem = this.getDyeChannelItem(craftingInput);
         if (positionedItem != null) {
+            DyeChannel dyeChannel = positionedItem.itemStack().getOrDefault(
+                    ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT);
             MutableBoolean mutableBoolean = new MutableBoolean();
-            this.iterateDyeItems(craftingInput, positionedItem.posX(), positionedItem.posY(),
-                    (DyeColor dyeColor, int value) -> {
-                        mutableBoolean.setTrue();
+            List<PositionedItem> items = this.iterateDyeItems(craftingInput, positionedItem.posX(),
+                    positionedItem.posY(), (DyeColor dyeColor, int value) -> {
+                // do not allow setting the same color again to the same slot
+                        if (dyeChannel.withColorAt(value, dyeColor) != dyeChannel) {
+                            mutableBoolean.setTrue();
+                        }
                     }
             );
-            return mutableBoolean.isTrue();
+            if (mutableBoolean.isTrue()) {
+                // check that all other slots are empty
+                items.add(positionedItem);
+                IntSet set = items.stream().map(item -> item.index(craftingInput.width())).collect(
+                        Collectors.toCollection(IntArraySet::new));
+                for (int i = 0; i < craftingInput.size(); i++) {
+                    if (!set.contains(i) && !craftingInput.getItem(i).isEmpty()) {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -52,17 +74,20 @@ public class DyeChannelRecipe extends CustomRecipe {
         return null;
     }
 
-    private void iterateDyeItems(CraftingInput craftingInput, int posX, int posY, ObjIntConsumer<DyeColor> consumer) {
+    private List<PositionedItem> iterateDyeItems(CraftingInput craftingInput, int posX, int posY, ObjIntConsumer<DyeColor> consumer) {
+        List<PositionedItem> dyeItems = new ArrayList<>();
         posX--;
         posY--;
-        if (posX >= 0 && posX + 3 < craftingInput.width() && posY >= 0 && posY < craftingInput.height()) {
-            for (int i = 0; i < 3; i++, posX++) {
+        for (int i = 0; i < 3; i++, posX++) {
+            if (posX >= 0 && posX < craftingInput.width() && posY >= 0 && posY < craftingInput.height()) {
                 ItemStack itemStack = craftingInput.getItem(posX, posY);
-                if (itemStack.getItem() instanceof DyeItem dyeItem) {
-                    consumer.accept(dyeItem.getDyeColor(), i);
+                if (itemStack.is(ModRegistry.DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG)) {
+                    consumer.accept(DyeChannel.getDyeColor(itemStack.getItem()), i);
+                    dyeItems.add(new PositionedItem(itemStack, posX, posY));
                 }
             }
         }
+        return dyeItems;
     }
 
     @Override
@@ -87,7 +112,7 @@ public class DyeChannelRecipe extends CustomRecipe {
 
     @Override
     public boolean canCraftInDimensions(int width, int height) {
-        return width >= 3 && height >= 2;
+        return height >= 2;
     }
 
     @Override
@@ -97,5 +122,8 @@ public class DyeChannelRecipe extends CustomRecipe {
 
     record PositionedItem(ItemStack itemStack, int posX, int posY) {
 
+        public int index(int width) {
+            return this.posX + this.posY * width;
+        }
     }
 }

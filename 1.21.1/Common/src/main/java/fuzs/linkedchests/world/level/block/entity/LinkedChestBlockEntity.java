@@ -30,8 +30,10 @@ import java.util.Objects;
 
 public class LinkedChestBlockEntity extends BlockEntity implements ListBackedContainer, MenuProvider, LidBlockEntity {
     static final String KEY_DYE_CHANNEL = LinkedChests.id("dye_channel").toString();
+    static final String KEY_LATCH_ITEM = LinkedChests.id("latch_item").toString();
 
     private DyeChannel dyeChannel = DyeChannel.DEFAULT;
+    private ItemStack latchItem = ItemStack.EMPTY;
     @Nullable
     private DyeChannelStorage storage;
 
@@ -45,6 +47,7 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
         this.dyeChannel = DyeChannel.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE),
                 compoundTag.getCompound(KEY_DYE_CHANNEL)
         ).resultOrPartial(LinkedChests.LOGGER::error).orElse(DyeChannel.DEFAULT);
+        this.latchItem = ItemStack.parseOptional(registries, compoundTag.getCompound(KEY_LATCH_ITEM));
     }
 
     @Override
@@ -53,6 +56,9 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
         DyeChannel.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this.dyeChannel)
                 .resultOrPartial(LinkedChests.LOGGER::error)
                 .ifPresent(tag -> compoundTag.put(KEY_DYE_CHANNEL, tag));
+        if (!this.latchItem.isEmpty()) {
+            compoundTag.put(KEY_LATCH_ITEM, this.latchItem.save(registries));
+        }
     }
 
     public DyeChannel getDyeChannel() {
@@ -66,6 +72,18 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
             this.storage = null;
             this.markUpdated();
         }
+    }
+
+    public void setLatchItem(ItemStack itemStack) {
+        this.latchItem = itemStack;
+        this.setChanged();
+    }
+
+    public ItemStack removeLatchItem() {
+        ItemStack itemStack = this.latchItem;
+        this.latchItem = ItemStack.EMPTY;
+        this.setChanged();
+        return itemStack;
     }
 
     private DyeChannelStorage getStorage() {

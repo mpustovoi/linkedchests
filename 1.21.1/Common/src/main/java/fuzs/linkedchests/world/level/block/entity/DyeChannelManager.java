@@ -49,7 +49,7 @@ public final class DyeChannelManager extends SavedData {
 
     private static DyeChannelManager load(CompoundTag compoundTag, HolderLookup.Provider registries) {
         return CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE),
-                compoundTag.getCompound(KEY_CHANNELS)
+                compoundTag.getList(KEY_CHANNELS, Tag.TAG_COMPOUND)
         ).resultOrPartial(LinkedChests.LOGGER::error).map(DyeChannelManager::new).orElseGet(DyeChannelManager::new);
     }
 
@@ -72,6 +72,8 @@ public final class DyeChannelManager extends SavedData {
             instance = null;
         });
         ServerTickEvents.END.register((MinecraftServer server) -> {
+            // the vanilla recheck runs as a block tick every five ticks while a chest is open
+            // since this always runs on the server make it 20
             if (server.getTickCount() % 20 == 0) {
                 DyeChannelManager channelManager = instance;
                 if (channelManager != null) {

@@ -7,6 +7,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 public class ModItemTagProvider extends AbstractTagProvider<Item> {
 
@@ -17,5 +18,7 @@ public class ModItemTagProvider extends AbstractTagProvider<Item> {
     @Override
     public void addTags(HolderLookup.Provider registries) {
         this.add(ItemTags.VANISHING_ENCHANTABLE).add(ModRegistry.LINKED_STORAGE_ITEM);
+        this.add(ModRegistry.DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG).addOptionalTag("c:dyes");
+        this.add(ModRegistry.PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG).add(Items.DIAMOND);
     }
 }

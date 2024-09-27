@@ -53,6 +53,7 @@ public class ModModelProvider extends AbstractModelProvider {
                 "_latch"
         );
         ModelTemplate modelTemplate = ModelTemplates.createItem("generated", textureSlots);
+        // creates an item model with an override, and the override model if specified
         if (isOverride) {
             modelTemplate.create(modelLocation, textureMapping, builder.output);
         } else {
@@ -66,6 +67,7 @@ public class ModModelProvider extends AbstractModelProvider {
     }
 
     public static TextureSlot[] createTextureSlotLayers(int size) {
+        // just dynamically creates layer texture slots for a specified size, Minecraft is supposed to support up to 5
         TextureSlot[] textureSlots = new TextureSlot[size];
         for (int i = 0; i < textureSlots.length; i++) {
             textureSlots[i] = TextureSlot.create("layer" + i);
@@ -74,6 +76,7 @@ public class ModModelProvider extends AbstractModelProvider {
     }
 
     public static TextureMapping layered(ResourceLocation resourceLocation, TextureSlot[] textureSlots, String... layerSuffixes) {
+        // add the suffixes to the resource location for all layers past zero
         TextureMapping textureMapping = new TextureMapping();
         for (int i = 0; i < textureSlots.length; i++) {
             ResourceLocation textureLocation = i == 0 ? resourceLocation : resourceLocation.withSuffix(

@@ -19,6 +19,9 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * Adapted from {@link net.minecraft.world.level.block.entity.ContainerOpenersCounter}.
+ */
 public class LinkedChestOpenersCounter {
     private final Predicate<NonNullList<ItemStack>> containerChecker;
     private int openCount;
@@ -29,6 +32,8 @@ public class LinkedChestOpenersCounter {
     }
 
     protected void openerCountChanged(DyeChannel dyeChannel, MinecraftServer server, int openCount) {
+        // vanilla uses a block event to synchronize the changed openers count, we need to send this to all connected clients though,
+        // not just whoever is tracking a certain block
         LinkedChests.NETWORK.sendMessage(PlayerSet.ofAll(server),
                 new UpdateLidControllerMessage(dyeChannel, openCount > 0)
         );

@@ -37,8 +37,7 @@ public class LinkedChests implements ModConstructor {
 
     @Override
     public void onRegisterCreativeModeTabs(CreativeModeTabContext context) {
-        context.registerCreativeModeTab(CreativeModeTabConfigurator.from(MOD_ID)
-                .icon(() -> ModRegistry.LINKED_CHEST_ITEM.value().getDefaultInstance())
+        context.registerCreativeModeTab(CreativeModeTabConfigurator.from(MOD_ID, ModRegistry.LINKED_CHEST_ITEM)
                 .displayItems((itemDisplayParameters, output) -> {
                     output.accept(ModRegistry.LINKED_CHEST_ITEM.value());
                     output.accept(ModRegistry.LINKED_STORAGE_ITEM.value());

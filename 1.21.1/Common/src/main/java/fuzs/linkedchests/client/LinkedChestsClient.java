@@ -29,7 +29,6 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
@@ -38,7 +37,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -56,29 +54,29 @@ public class LinkedChestsClient implements ClientModConstructor {
     private static void registerEventHandlers() {
         ClientTickEvents.END.register(DyeChannelLidController::onEndClientTick);
         ClientPlayerNetworkEvents.LOGGED_IN.register(DyeChannelLidController::onLoggedIn);
-//        RenderHighlightCallback.EVENT.register(
-//                (LevelRenderer levelRenderer, Camera camera, GameRenderer gameRenderer, HitResult hitResult, DeltaTracker deltaTracker, PoseStack poseStack, MultiBufferSource multiBufferSource, ClientLevel level) -> {
-//                    if (hitResult.getType() == HitResult.Type.BLOCK) {
-//                        BlockPos blockPos = ((BlockHitResult) hitResult).getBlockPos();
-//                        BlockState blockState = level.getBlockState(blockPos);
-//                        if (!blockState.isAir() && level.getWorldBorder().isWithinBounds(blockPos) &&
-//                                blockState.getBlock() instanceof HighlightShapeProvider block) {
-//                            VoxelShape voxelShape = block.getHighlightShape(blockState, level, blockPos,
-//                                    hitResult.getLocation()
-//                            );
-//                            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.lines());
-//                            Vec3 cameraPosition = camera.getPosition();
-//                            double posX = blockPos.getX() - cameraPosition.x();
-//                            double posY = blockPos.getY() - cameraPosition.y();
-//                            double posZ = blockPos.getZ() - cameraPosition.z();
-//                            LevelRenderer.renderVoxelShape(poseStack, vertexConsumer, voxelShape, posX, posY, posZ,
-//                                    0.0F, 0.0F, 0.0F, 0.4F, true
-//                            );
-//                            return EventResult.INTERRUPT;
-//                        }
-//                    }
-//                    return EventResult.PASS;
-//                });
+        RenderHighlightCallback.EVENT.register(
+                (LevelRenderer levelRenderer, Camera camera, GameRenderer gameRenderer, HitResult hitResult, DeltaTracker deltaTracker, PoseStack poseStack, MultiBufferSource multiBufferSource, ClientLevel level) -> {
+                    if (hitResult.getType() == HitResult.Type.BLOCK) {
+                        BlockPos blockPos = ((BlockHitResult) hitResult).getBlockPos();
+                        BlockState blockState = level.getBlockState(blockPos);
+                        if (!blockState.isAir() && level.getWorldBorder().isWithinBounds(blockPos) &&
+                                blockState.getBlock() instanceof HighlightShapeProvider block) {
+                            VoxelShape voxelShape = block.getHighlightShape(blockState, level, blockPos,
+                                    hitResult.getLocation()
+                            );
+                            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.lines());
+                            Vec3 cameraPosition = camera.getPosition();
+                            double posX = blockPos.getX() - cameraPosition.x();
+                            double posY = blockPos.getY() - cameraPosition.y();
+                            double posZ = blockPos.getZ() - cameraPosition.z();
+                            LevelRenderer.renderVoxelShape(poseStack, vertexConsumer, voxelShape, posX, posY, posZ,
+                                    0.0F, 0.0F, 0.0F, 0.4F, true
+                            );
+                            return EventResult.INTERRUPT;
+                        }
+                    }
+                    return EventResult.PASS;
+                });
     }
 
     @Override
@@ -139,6 +137,7 @@ public class LinkedChestsClient implements ClientModConstructor {
                             DyeChannel.DEFAULT
                     );
                     blockEntity.setDyeChannel(dyeChannel);
+                    // no clue why this is rotated in the first place, but this fixes it and makes it look like vanilla chests
                     poseStack.pushPose();
                     poseStack.translate(0.5F, 0.5F, 0.5F);
                     poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));

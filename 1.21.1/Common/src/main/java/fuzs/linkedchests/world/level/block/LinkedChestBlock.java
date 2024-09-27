@@ -6,6 +6,7 @@ import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
 import fuzs.puzzleslib.api.core.v1.Proxy;
+import fuzs.puzzleslib.api.shape.v1.ShapesHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -109,8 +110,8 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
             DyeChannel dyeChannel = blockEntity.getDyeChannel();
             Direction direction = state.getValue(FACING);
             Vec3 hitVector = hitResult.getLocation().subtract(pos.getX(), pos.getY(), pos.getZ());
-            if (itemInHand.getItem() instanceof DyeItem dyeItem) {
-                DyeColor dyeColor = DyeChannel.getDyeColor(dyeItem);
+            if (itemInHand.is(ModRegistry.DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG)) {
+                DyeColor dyeColor = DyeChannel.getDyeColor(itemInHand.getItem());
                 DyeChannel newDyeChannel = dyeChannel;
                 if (LEFT_BUTTON_SHAPES.get(direction).bounds().inflate(0.001).contains(hitVector)) {
                     newDyeChannel = dyeChannel.withLeftColor(dyeColor);
@@ -133,7 +134,7 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
                             level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F,
                                     1.0F
                             );
-                            ItemStack itemStack = new ItemStack(Items.DIAMOND);
+                            ItemStack itemStack = blockEntity.removeLatchItem();
                             if (!player.getInventory().add(itemStack)) {
                                 player.drop(itemStack, false);
                             }
@@ -142,9 +143,11 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
                         }
                         return ItemInteractionResult.sidedSuccess(level.isClientSide);
                     }
-                } else if (itemInHand.is(Items.DIAMOND)) {
+                } else if (itemInHand.is(ModRegistry.PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG)) {
                     blockEntity.setDyeChannel(dyeChannel.withUUID(player.getUUID()));
                     level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    // we must store the used item to return it when removed as the tag can allow anything, so we would not know what to return
+                    blockEntity.setLatchItem(itemInHand.copyWithCount(1));
                     itemInHand.consume(1, player);
                     return ItemInteractionResult.sidedSuccess(level.isClientSide);
                 }
