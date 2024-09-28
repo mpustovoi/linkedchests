@@ -21,7 +21,10 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -121,16 +124,19 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
                     newDyeChannel = dyeChannel.withRightColor(dyeColor);
                 }
                 if (dyeChannel != newDyeChannel) {
-                    blockEntity.setDyeChannel(newDyeChannel);
-                    level.playSound(null, pos, SoundEvents.CHISELED_BOOKSHELF_INSERT, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    itemInHand.consume(1, player);
+                    if (!level.isClientSide) {
+                        blockEntity.setDyeChannel(newDyeChannel);
+                        level.playSound(null, pos, SoundEvents.CHISELED_BOOKSHELF_INSERT, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        itemInHand.consume(1, player);
+                        level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+                    }
                     return ItemInteractionResult.sidedSuccess(level.isClientSide);
                 }
             } else if (LATCH_SHAPES.get(direction).bounds().inflate(0.001).contains(hitVector)) {
                 if (dyeChannel.uuid().isPresent()) {
                     if (itemInHand.isEmpty() && player.isShiftKeyDown()) {
-                        blockEntity.setDyeChannel(dyeChannel.withUUID(null));
                         if (!level.isClientSide) {
+                            blockEntity.setDyeChannel(dyeChannel.withUUID(null));
                             level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F,
                                     1.0F
                             );
@@ -144,29 +150,28 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
                         return ItemInteractionResult.sidedSuccess(level.isClientSide);
                     }
                 } else if (itemInHand.is(ModRegistry.PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG)) {
-                    blockEntity.setDyeChannel(dyeChannel.withUUID(player.getUUID()));
-                    level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
-                    // we must store the used item to return it when removed as the tag can allow anything, so we would not know what to return
-                    blockEntity.setLatchItem(itemInHand.copyWithCount(1));
-                    itemInHand.consume(1, player);
+                    if (!level.isClientSide) {
+                        blockEntity.setDyeChannel(dyeChannel.withUUID(player.getUUID()));
+                        level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        // we must store the used item to return it when removed as the tag can allow anything, so we would not know what was used initially
+                        blockEntity.setLatchItem(itemInHand.copyWithCount(1));
+                        itemInHand.consume(1, player);
+                        level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+                    }
                     return ItemInteractionResult.sidedSuccess(level.isClientSide);
                 }
             }
         }
 
-        if (level.getBlockState(pos.above()).isRedstoneConductor(level, pos.above())) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
-        } else if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
-        } else {
+        if (!level.getBlockState(pos.above()).isRedstoneConductor(level, pos.above()) && !level.isClientSide) {
             MenuProvider menuProvider = this.getMenuProvider(state, level, pos);
             if (menuProvider != null) {
                 player.openMenu(menuProvider);
                 PiglinAi.angerNearbyPiglins(player, true);
             }
-
-            return ItemInteractionResult.CONSUME;
         }
+        
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
