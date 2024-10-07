@@ -45,6 +45,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class LinkedChestsClient implements ClientModConstructor {
     public static final ResourceLocation ITEM_MODEL_PROPERTY_OPEN = LinkedChests.id("open");
+    public static final ResourceLocation ITEM_MODEL_PROPERTY_PERSONAL = LinkedChests.id("personal");
 
     @Override
     public void onConstructMod() {
@@ -87,16 +88,24 @@ public class LinkedChestsClient implements ClientModConstructor {
                             DyeChannel.DEFAULT
                     );
                     return Mth.ceil(DyeChannelLidController.getChestLidController(dyeChannel).getOpenness(1.0F));
-                }, ModRegistry.LINKED_STORAGE_ITEM.value()
+                }, ModRegistry.LINKED_POUCH_ITEM.value()
+        );
+        context.registerItemProperty(ITEM_MODEL_PROPERTY_PERSONAL,
+                (ItemStack itemStack, ClientLevel clientLevel, LivingEntity entity, int seed) -> {
+                    DyeChannel dyeChannel = itemStack.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
+                            DyeChannel.DEFAULT
+                    );
+                    return dyeChannel.uuid().isPresent() ? 1.0F : 0.0F;
+                }, ModRegistry.LINKED_POUCH_ITEM.value()
         );
     }
 
     @Override
     public void onRegisterMenuScreens(MenuScreensContext context) {
         context.registerMenuScreen(ModRegistry.LINKED_CHEST_MENU_TYPE.value(), ContainerScreen::new);
-        context.registerMenuScreen(ModRegistry.LINKED_STORAGE_MENU_TYPE.value(), ContainerScreen::new);
+        context.registerMenuScreen(ModRegistry.LINKED_POUCH_MENU_TYPE.value(), ContainerScreen::new);
         context.registerMenuScreen(ModRegistry.PERSONAL_LINKED_CHEST_MENU_TYPE.value(), ContainerScreen::new);
-        context.registerMenuScreen(ModRegistry.PERSONAL_LINKED_STORAGE_MENU_TYPE.value(), ContainerScreen::new);
+        context.registerMenuScreen(ModRegistry.PERSONAL_LINKED_POUCH_MENU_TYPE.value(), ContainerScreen::new);
     }
 
     @Override
@@ -119,11 +128,10 @@ public class LinkedChestsClient implements ClientModConstructor {
                 case 1 -> dyeChannel.leftColor();
                 case 2 -> dyeChannel.middleColor();
                 case 3 -> dyeChannel.rightColor();
-                case 4 -> dyeChannel.uuid().isPresent() ? dyeChannel.leftColor() : DyeColor.WHITE;
                 default -> DyeColor.WHITE;
             };
             return FastColor.ARGB32.opaque(dyeColor.getMapColor().col);
-        }, ModRegistry.LINKED_CHEST_ITEM.value(), ModRegistry.LINKED_STORAGE_ITEM.value());
+        }, ModRegistry.LINKED_CHEST_ITEM.value(), ModRegistry.LINKED_POUCH_ITEM.value());
     }
 
     @Override

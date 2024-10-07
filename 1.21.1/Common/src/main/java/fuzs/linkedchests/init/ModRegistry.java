@@ -2,7 +2,7 @@ package fuzs.linkedchests.init;
 
 import fuzs.linkedchests.LinkedChests;
 import fuzs.linkedchests.world.inventory.LinkedMenu;
-import fuzs.linkedchests.world.item.LinkedStorageItem;
+import fuzs.linkedchests.world.item.LinkedPouchItem;
 import fuzs.linkedchests.world.item.crafting.DyeChannelRecipe;
 import fuzs.linkedchests.world.item.crafting.ShapedDyeChannelRecipe;
 import fuzs.linkedchests.world.level.block.LinkedChestBlock;
@@ -43,24 +43,24 @@ public class ModRegistry {
                     new Item.Properties().component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT)
             )
     );
-    public static final Holder.Reference<Item> LINKED_STORAGE_ITEM = REGISTRIES.registerItem("linked_storage",
-            () -> new LinkedStorageItem(new Item.Properties().stacksTo(1)
+    public static final Holder.Reference<Item> LINKED_POUCH_ITEM = REGISTRIES.registerItem("linked_pouch",
+            () -> new LinkedPouchItem(new Item.Properties().stacksTo(1)
                     .component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT))
     );
     public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_CHEST_MENU_TYPE = REGISTRIES.registerMenuType(
             "linked_chest", () -> {
                 return LinkedMenu.createSupplier(false, false);
             });
-    public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_STORAGE_MENU_TYPE = REGISTRIES.registerMenuType(
-            "linked_storage", () -> {
+    public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_POUCH_MENU_TYPE = REGISTRIES.registerMenuType(
+            "linked_pouch", () -> {
                 return LinkedMenu.createSupplier(false, true);
             });
     public static final Holder.Reference<MenuType<LinkedMenu>> PERSONAL_LINKED_CHEST_MENU_TYPE = REGISTRIES.registerMenuType(
             "personal_linked_chest", () -> {
                 return LinkedMenu.createSupplier(true, false);
             });
-    public static final Holder.Reference<MenuType<LinkedMenu>> PERSONAL_LINKED_STORAGE_MENU_TYPE = REGISTRIES.registerMenuType(
-            "personal_linked_storage", () -> {
+    public static final Holder.Reference<MenuType<LinkedMenu>> PERSONAL_LINKED_POUCH_MENU_TYPE = REGISTRIES.registerMenuType(
+            "personal_linked_pouch", () -> {
                 return LinkedMenu.createSupplier(true, true);
             });
     public static final Holder.Reference<RecipeSerializer<DyeChannelRecipe>> DYE_CHANNEL_RECIPE_SERIALIZER = REGISTRIES.register(
@@ -71,8 +71,10 @@ public class ModRegistry {
             Registries.RECIPE_SERIALIZER, "crafting_shaped_dye_channel", () -> new ShapedDyeChannelRecipe.Serializer());
 
     static final TagFactory TAGS = TagFactory.make(LinkedChests.MOD_ID);
-    public static final TagKey<Item> DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG = TAGS.registerItemTag("dye_channel_color_providers");
-    public static final TagKey<Item> PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG = TAGS.registerItemTag("personal_channel_providers");
+    public static final TagKey<Item> DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG = TAGS.registerItemTag(
+            "dye_channel_color_providers");
+    public static final TagKey<Item> PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG = TAGS.registerItemTag(
+            "personal_channel_providers");
 
     public static void bootstrap() {
         // NO-OP

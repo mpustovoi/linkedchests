@@ -40,7 +40,7 @@ public class ModRecipeProvider extends AbstractRecipeProvider {
                 .save(new ForwardingRecipeOutput(recipeOutput,
                         recipe -> new ShapedDyeChannelRecipe((ShapedRecipe) recipe)
                 ));
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModRegistry.LINKED_STORAGE_ITEM.value())
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ModRegistry.LINKED_POUCH_ITEM.value())
                 .define('@', Items.ENDER_EYE)
                 .define('#', Items.LEATHER)
                 .define('C', Items.CHEST)

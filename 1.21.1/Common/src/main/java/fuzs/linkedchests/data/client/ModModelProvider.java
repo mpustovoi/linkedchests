@@ -12,8 +12,11 @@ import net.minecraft.data.models.model.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Blocks;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ModModelProvider extends AbstractModelProvider {
     public static final ModelTemplate CHEST_TEMPLATE = new ModelTemplate(
@@ -37,32 +40,65 @@ public class ModModelProvider extends AbstractModelProvider {
         CHEST_TEMPLATE.create(ModelLocationUtils.getModelLocation(ModRegistry.LINKED_CHEST_ITEM.value()),
                 TextureMapping.particle(Blocks.END_STONE), builder.output
         );
-        createLinkedStorageItem(builder, ModRegistry.LINKED_STORAGE_ITEM.value(),
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, false
+        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value());
+        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value(), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, null,
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL
         );
-        createLinkedStorageItem(builder, ModRegistry.LINKED_STORAGE_ITEM.value(),
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, true
+        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value(), null, null,
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL
+        );
+        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value(), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, null,
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN
         );
     }
 
-    private static void createLinkedStorageItem(ItemModelGenerators builder, Item item, ResourceLocation itemModelProperty, boolean isOverride) {
-        String suffix = "_" + itemModelProperty.getPath();
-        ResourceLocation modelLocation = getModelLocation(item).withSuffix(isOverride ? suffix : "");
-        TextureSlot[] textureSlots = createTextureSlotLayers(5);
-        TextureMapping textureMapping = layered(modelLocation, textureSlots, "_button1", "_button2", "_button3",
-                "_latch"
+    private static void createLinkedPouchItem(ItemModelGenerators builder, Item item) {
+        ResourceLocation modelLocation = getModelLocation(item);
+        ItemModelProperties[] itemModelProperties = new ItemModelProperties[3];
+        itemModelProperties[2] = ItemModelProperties.twoOverrides(
+                getModelLocationWithSuffix(modelLocation, LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN,
+                        LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL
+                ), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, 1.0F, LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL,
+                1.0F
         );
-        ModelTemplate modelTemplate = ModelTemplates.createItem("generated", textureSlots);
-        // creates an item model with an override, and the override model if specified
-        if (isOverride) {
-            modelTemplate.create(modelLocation, textureMapping, builder.output);
+        itemModelProperties[1] = ItemModelProperties.singleOverride(
+                getModelLocationWithSuffix(modelLocation, LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL),
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL, 1.0F
+        );
+        itemModelProperties[0] = ItemModelProperties.singleOverride(
+                getModelLocationWithSuffix(modelLocation, LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN),
+                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, 1.0F
+        );
+        ModelTemplate.JsonFactory jsonFactory = ItemModelProperties.overridesFactory(ModelTemplates.FLAT_ITEM,
+                itemModelProperties
+        );
+        createLinkedPouchItem(builder, item, null, jsonFactory);
+    }
+
+    private static void createLinkedPouchItem(ItemModelGenerators builder, Item item, @Nullable ResourceLocation layerLocation, @Nullable ModelTemplate.JsonFactory jsonFactory, ResourceLocation... itemModelProperties) {
+        if (layerLocation == null) {
+            layerLocation = getModelLocation(item);
         } else {
-            ItemModelProperties itemModelProperties = ItemModelProperties.singleOverride(
-                    modelLocation.withSuffix(suffix), itemModelProperty, 1.0F);
-            ModelTemplate.JsonFactory jsonFactory = ItemModelProperties.overridesFactory(ModelTemplates.FLAT_ITEM,
-                    itemModelProperties
-            );
+            layerLocation = getModelLocation(item).withSuffix("_" + layerLocation.getPath());
+        }
+        ResourceLocation modelLocation = getModelLocationWithSuffix(getModelLocation(item), itemModelProperties);
+        TextureSlot[] textureSlots = createTextureSlotLayers(4);
+        TextureMapping textureMapping = layered(modelLocation, layerLocation, textureSlots, "_button1", "_button2", "_button3");
+        ModelTemplate modelTemplate = ModelTemplates.createItem("generated", textureSlots);
+        if (jsonFactory != null) {
             modelTemplate.create(modelLocation, textureMapping, builder.output, jsonFactory);
+        } else {
+            modelTemplate.create(modelLocation, textureMapping, builder.output);
+        }
+    }
+
+    public static ResourceLocation getModelLocationWithSuffix(ResourceLocation modelLocation, ResourceLocation... itemModelProperties) {
+        String suffix = Arrays.stream(itemModelProperties).map(ResourceLocation::getPath).collect(
+                Collectors.joining("_"));
+        if (!suffix.isEmpty()) {
+            return modelLocation.withSuffix("_" + suffix);
+        } else {
+            return modelLocation;
         }
     }
 
@@ -75,11 +111,11 @@ public class ModModelProvider extends AbstractModelProvider {
         return textureSlots;
     }
 
-    public static TextureMapping layered(ResourceLocation resourceLocation, TextureSlot[] textureSlots, String... layerSuffixes) {
+    public static TextureMapping layered(ResourceLocation initialLayerLocation, ResourceLocation layerLocation, TextureSlot[] textureSlots, String... layerSuffixes) {
         // add the suffixes to the resource location for all layers past zero
         TextureMapping textureMapping = new TextureMapping();
         for (int i = 0; i < textureSlots.length; i++) {
-            ResourceLocation textureLocation = i == 0 ? resourceLocation : resourceLocation.withSuffix(
+            ResourceLocation textureLocation = i == 0 ? initialLayerLocation : layerLocation.withSuffix(
                     layerSuffixes[i - 1]);
             textureMapping.put(textureSlots[i], textureLocation);
         }

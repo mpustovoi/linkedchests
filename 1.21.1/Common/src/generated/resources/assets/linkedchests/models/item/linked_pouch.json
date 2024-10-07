@@ -1,0 +1,30 @@
+{
+  "parent": "minecraft:item/generated",
+  "overrides": [
+    {
+      "model": "linkedchests:item/linked_pouch_open",
+      "predicate": {
+        "linkedchests:open": 1.0
+      }
+    },
+    {
+      "model": "linkedchests:item/linked_pouch_personal",
+      "predicate": {
+        "linkedchests:personal": 1.0
+      }
+    },
+    {
+      "model": "linkedchests:item/linked_pouch_open_personal",
+      "predicate": {
+        "linkedchests:open": 1.0,
+        "linkedchests:personal": 1.0
+      }
+    }
+  ],
+  "textures": {
+    "layer0": "linkedchests:item/linked_pouch",
+    "layer1": "linkedchests:item/linked_pouch_button1",
+    "layer2": "linkedchests:item/linked_pouch_button2",
+    "layer3": "linkedchests:item/linked_pouch_button3"
+  }
+}

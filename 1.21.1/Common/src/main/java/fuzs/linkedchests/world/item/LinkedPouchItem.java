@@ -22,9 +22,9 @@ import net.minecraft.world.level.Level;
 
 import java.util.List;
 
-public class LinkedStorageItem extends Item {
+public class LinkedPouchItem extends Item {
 
-    public LinkedStorageItem(Properties properties) {
+    public LinkedPouchItem(Properties properties) {
         super(properties);
     }
 

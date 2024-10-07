@@ -16,7 +16,7 @@ public class ModLanguageProvider extends AbstractLanguageProvider {
     public void addTranslations(TranslationBuilder builder) {
         builder.addCreativeModeTab(LinkedChests.MOD_ID, LinkedChests.MOD_NAME);
         builder.addBlock(ModRegistry.LINKED_CHEST_BLOCK, "Linked Chest");
-        builder.addItem(ModRegistry.LINKED_STORAGE_ITEM, "Linked Storage");
+        builder.addItem(ModRegistry.LINKED_POUCH_ITEM, "Linked Pouch");
         builder.add(((LinkedChestBlock) ModRegistry.LINKED_CHEST_BLOCK.value()).getDescriptionComponent(),
                 "Grants access to items stored in interdimensional realms."
         );

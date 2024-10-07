@@ -27,10 +27,10 @@ public class LinkedMenu extends ChestMenu {
 
     private static MenuType<LinkedMenu> selectMenuType(boolean personalChannel, boolean lockSelectedSlot) {
         if (personalChannel) {
-            return lockSelectedSlot ? ModRegistry.PERSONAL_LINKED_STORAGE_MENU_TYPE.value() :
+            return lockSelectedSlot ? ModRegistry.PERSONAL_LINKED_POUCH_MENU_TYPE.value() :
                     ModRegistry.PERSONAL_LINKED_CHEST_MENU_TYPE.value();
         } else {
-            return lockSelectedSlot ? ModRegistry.LINKED_STORAGE_MENU_TYPE.value() :
+            return lockSelectedSlot ? ModRegistry.LINKED_POUCH_MENU_TYPE.value() :
                     ModRegistry.LINKED_CHEST_MENU_TYPE.value();
         }
     }

@@ -1,6 +1,8 @@
-// 1.21.1	2024-09-26T23:35:43.022984	Model Definitions
+// 1.21.1	2024-10-07T19:47:07.888185	Model Definitions
 01aa971e2f0d23454263eeb9938c2dceb6dbd8e3 assets/linkedchests/blockstates/linked_chest.json
 9744590b56a1b95883dc4fc074d09d164f0784a8 assets/linkedchests/models/block/linked_chest.json
 9a777d7c9978827514597702967079d6a4c8319d assets/linkedchests/models/item/linked_chest.json
-310671871ccb88fdc4806fb947207a3ffc43037f assets/linkedchests/models/item/linked_storage.json
-087a734a6f6e1a29e137791af45ff921e9b3069e assets/linkedchests/models/item/linked_storage_open.json
+27aeee43cd75684440960cf190dc95ab376e5236 assets/linkedchests/models/item/linked_pouch.json
+0695b513e00628bdb583266456bd8da75435f29a assets/linkedchests/models/item/linked_pouch_open.json
+763035f869b4c7d7520908488ad43776519e74ac assets/linkedchests/models/item/linked_pouch_open_personal.json
+ec3c59efc9b70e2f22da513b7e5af1e2310e6b8c assets/linkedchests/models/item/linked_pouch_personal.json

@@ -40,7 +40,7 @@ public class LinkedChests implements ModConstructor {
         context.registerCreativeModeTab(CreativeModeTabConfigurator.from(MOD_ID, ModRegistry.LINKED_CHEST_ITEM)
                 .displayItems((itemDisplayParameters, output) -> {
                     output.accept(ModRegistry.LINKED_CHEST_ITEM.value());
-                    output.accept(ModRegistry.LINKED_STORAGE_ITEM.value());
+                    output.accept(ModRegistry.LINKED_POUCH_ITEM.value());
                 }));
     }
 

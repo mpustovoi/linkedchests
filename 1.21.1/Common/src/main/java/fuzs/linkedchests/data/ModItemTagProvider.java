@@ -17,7 +17,7 @@ public class ModItemTagProvider extends AbstractTagProvider<Item> {
 
     @Override
     public void addTags(HolderLookup.Provider registries) {
-        this.add(ItemTags.VANISHING_ENCHANTABLE).add(ModRegistry.LINKED_STORAGE_ITEM);
+        this.add(ItemTags.VANISHING_ENCHANTABLE).add(ModRegistry.LINKED_POUCH_ITEM);
         this.add(ModRegistry.DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG).addOptionalTag("c:dyes");
         this.add(ModRegistry.PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG).add(Items.DIAMOND);
     }
