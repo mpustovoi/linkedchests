@@ -2,18 +2,10 @@
   "type": "linkedchests:crafting_shaped_dye_channel",
   "category": "misc",
   "key": {
-    "#": {
-      "item": "minecraft:leather"
-    },
-    "@": {
-      "item": "minecraft:ender_eye"
-    },
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "W": {
-      "tag": "minecraft:wool"
-    }
+    "#": "minecraft:leather",
+    "@": "minecraft:ender_eye",
+    "C": "minecraft:chest",
+    "W": "#minecraft:wool"
   },
   "pattern": [
     "@#@",

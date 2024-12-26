@@ -5,9 +5,9 @@ import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.data.loot.packs.LootData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -22,15 +22,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ShapedDyeChannelRecipe extends ShapedRecipe {
-    private static final Map<Item, DyeColor> DYE_BY_ITEM = Sheep.ITEM_BY_DYE.entrySet().stream().collect(
-            Collectors.toMap((Map.Entry<DyeColor, ItemLike> entry) -> entry.getValue().asItem(), Map.Entry::getKey,
-                    (o1, o2) -> o1, IdentityHashMap::new
-            ));
+    private static final Map<Item, DyeColor> DYE_BY_ITEM = LootData.WOOL_ITEM_BY_DYE.entrySet()
+            .stream()
+            .collect(Collectors.toMap((Map.Entry<DyeColor, ItemLike> entry) -> entry.getValue().asItem(),
+                    Map.Entry::getKey,
+                    (o1, o2) -> o1,
+                    IdentityHashMap::new));
 
     public ShapedDyeChannelRecipe(ShapedRecipe shapedRecipe) {
-        super(shapedRecipe.getGroup(), shapedRecipe.category(), shapedRecipe.pattern,
-                shapedRecipe.getResultItem(RegistryAccess.EMPTY), shapedRecipe.showNotification()
-        );
+        super(shapedRecipe.group(),
+                shapedRecipe.category(),
+                shapedRecipe.pattern,
+                shapedRecipe.assemble(CraftingInput.EMPTY, RegistryAccess.EMPTY),
+                shapedRecipe.showNotification());
     }
 
     @Override
@@ -48,7 +52,7 @@ public class ShapedDyeChannelRecipe extends ShapedRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends ShapedDyeChannelRecipe> getSerializer() {
         return ModRegistry.SHAPED_DYE_CHANNEL_RECIPE_SERIALIZER.value();
     }
 
@@ -61,9 +65,8 @@ public class ShapedDyeChannelRecipe extends ShapedRecipe {
 
         @Override
         public StreamCodec<RegistryFriendlyByteBuf, ShapedDyeChannelRecipe> streamCodec() {
-            return ShapedRecipe.Serializer.SHAPED_RECIPE.streamCodec().map(ShapedDyeChannelRecipe::new,
-                    Function.identity()
-            );
+            return ShapedRecipe.Serializer.SHAPED_RECIPE.streamCodec()
+                    .map(ShapedDyeChannelRecipe::new, Function.identity());
         }
     }
 }

@@ -30,22 +30,24 @@ public class DyeChannelRecipe extends CustomRecipe {
     public boolean matches(CraftingInput craftingInput, Level level) {
         PositionedItem positionedItem = this.getDyeChannelItem(craftingInput);
         if (positionedItem != null) {
-            DyeChannel dyeChannel = positionedItem.itemStack().getOrDefault(
-                    ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT);
+            DyeChannel dyeChannel = positionedItem.itemStack()
+                    .getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT);
             MutableBoolean mutableBoolean = new MutableBoolean();
-            List<PositionedItem> items = this.iterateDyeItems(craftingInput, positionedItem.posX(),
-                    positionedItem.posY(), (DyeColor dyeColor, int value) -> {
-                // do not allow setting the same color again to the same slot
+            List<PositionedItem> items = this.iterateDyeItems(craftingInput,
+                    positionedItem.posX(),
+                    positionedItem.posY(),
+                    (DyeColor dyeColor, int value) -> {
+                        // do not allow setting the same color again to the same slot
                         if (dyeChannel.withColorAt(value, dyeColor) != dyeChannel) {
                             mutableBoolean.setTrue();
                         }
-                    }
-            );
+                    });
             if (mutableBoolean.isTrue()) {
                 // check that all other slots are empty
                 items.add(positionedItem);
-                IntSet set = items.stream().map(item -> item.index(craftingInput.width())).collect(
-                        Collectors.toCollection(IntArraySet::new));
+                IntSet set = items.stream()
+                        .map(item -> item.index(craftingInput.width()))
+                        .collect(Collectors.toCollection(IntArraySet::new));
                 for (int i = 0; i < craftingInput.size(); i++) {
                     if (!set.contains(i) && !craftingInput.getItem(i).isEmpty()) {
                         return false;
@@ -95,15 +97,15 @@ public class DyeChannelRecipe extends CustomRecipe {
         PositionedItem positionedItem = this.getDyeChannelItem(craftingInput);
         if (positionedItem != null) {
             ItemStack itemStack = positionedItem.itemStack().copy();
-            this.iterateDyeItems(craftingInput, positionedItem.posX(), positionedItem.posY(),
+            this.iterateDyeItems(craftingInput,
+                    positionedItem.posX(),
+                    positionedItem.posY(),
                     (DyeColor dyeColor, int value) -> {
-                        DyeChannel dyeChannel = itemStack.getOrDefault(
-                                ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT);
+                        DyeChannel dyeChannel = itemStack.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
+                                DyeChannel.DEFAULT);
                         itemStack.set(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
-                                dyeChannel.withColorAt(value, dyeColor)
-                        );
-                    }
-            );
+                                dyeChannel.withColorAt(value, dyeColor));
+                    });
             return itemStack;
         } else {
             return ItemStack.EMPTY;
@@ -111,12 +113,7 @@ public class DyeChannelRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends DyeChannelRecipe> getSerializer() {
         return ModRegistry.DYE_CHANNEL_RECIPE_SERIALIZER.value();
     }
 

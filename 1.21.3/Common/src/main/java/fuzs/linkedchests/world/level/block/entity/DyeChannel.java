@@ -20,21 +20,24 @@ import java.util.UUID;
 
 public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor rightColor, Optional<UUID> uuid) {
     public static final DyeChannel DEFAULT = new DyeChannel(DyeColor.WHITE);
-    public static final Codec<DyeChannel> CODEC = RecordCodecBuilder.create(
-            instance -> instance.group(DyeColor.CODEC.listOf()
-                            .validate(list -> Util.fixedSize(list, 3))
-                            .fieldOf("colors")
-                            .forGetter(dyeChannel -> {
-                                return List.of(dyeChannel.leftColor, dyeChannel.middleColor, dyeChannel.rightColor);
-                            }), UUIDUtil.CODEC.optionalFieldOf("uuid").forGetter(DyeChannel::uuid))
-                    .apply(instance, (List<DyeColor> colors, Optional<UUID> uuid) -> {
-                        return new DyeChannel(colors.get(0), colors.get(1), colors.get(2), uuid);
-                    }));
+    public static final Codec<DyeChannel> CODEC = RecordCodecBuilder.create(instance -> instance.group(DyeColor.CODEC.listOf()
+                    .validate(list -> Util.fixedSize(list, 3))
+                    .fieldOf("colors")
+                    .forGetter(dyeChannel -> {
+                        return List.of(dyeChannel.leftColor, dyeChannel.middleColor, dyeChannel.rightColor);
+                    }), UUIDUtil.CODEC.optionalFieldOf("uuid").forGetter(DyeChannel::uuid))
+            .apply(instance, (List<DyeColor> colors, Optional<UUID> uuid) -> {
+                return new DyeChannel(colors.get(0), colors.get(1), colors.get(2), uuid);
+            }));
     public static final StreamCodec<ByteBuf, DyeChannel> STREAM_CODEC = StreamCodec.composite(DyeColor.STREAM_CODEC,
-            DyeChannel::leftColor, DyeColor.STREAM_CODEC, DyeChannel::middleColor, DyeColor.STREAM_CODEC,
-            DyeChannel::rightColor, UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs::optional), DyeChannel::uuid,
-            DyeChannel::new
-    );
+            DyeChannel::leftColor,
+            DyeColor.STREAM_CODEC,
+            DyeChannel::middleColor,
+            DyeColor.STREAM_CODEC,
+            DyeChannel::rightColor,
+            UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs::optional),
+            DyeChannel::uuid,
+            DyeChannel::new);
 
     public DyeChannel(DyeColor dyeColor) {
         this(dyeColor, dyeColor, dyeColor, Optional.empty());
@@ -79,6 +82,14 @@ public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor righ
 
     public DyeChannelStorage createStorage() {
         return new DyeChannelStorage(getContainerSize(this.uuid.isPresent()));
+    }
+
+    public int[] dyeColors() {
+        return new int[]{
+                this.leftColor.getTextureDiffuseColor(),
+                this.middleColor.getTextureDiffuseColor(),
+                this.rightColor.getTextureDiffuseColor()
+        };
     }
 
     public static int getContainerSize(boolean personalChannel) {
