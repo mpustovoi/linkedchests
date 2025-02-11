@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "linkedchests:item/linked_pouch_personal",
+    "layer1": "linkedchests:item/linked_pouch_button1",
+    "layer2": "linkedchests:item/linked_pouch_button2",
+    "layer3": "linkedchests:item/linked_pouch_button3"
+  }
+}

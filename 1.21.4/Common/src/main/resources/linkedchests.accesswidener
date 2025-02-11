@@ -1,0 +1,4 @@
+accessWidener   v2  named
+accessible  field   net/minecraft/world/item/crafting/ShapedRecipe  pattern Lnet/minecraft/world/item/crafting/ShapedRecipePattern;
+accessible  field   net/minecraft/client/renderer/blockentity/ChestRenderer xmasTextures    Z
+extendable  method  net/minecraft/client/renderer/blockentity/ChestRenderer render  (Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/client/model/ChestModel;FII)V
