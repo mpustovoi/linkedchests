@@ -1,0 +1,102 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "minecraft:condition",
+      "on_false": {
+        "type": "minecraft:model",
+        "model": "linkedchests:item/linked_pouch",
+        "tints": [
+          {
+            "type": "minecraft:constant",
+            "value": -1
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "left"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "middle"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "right"
+          }
+        ]
+      },
+      "on_true": {
+        "type": "minecraft:model",
+        "model": "linkedchests:item/linked_pouch_open",
+        "tints": [
+          {
+            "type": "minecraft:constant",
+            "value": -1
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "left"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "middle"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "right"
+          }
+        ]
+      },
+      "property": "linkedchests:linked_pouch/open"
+    },
+    "on_true": {
+      "type": "minecraft:condition",
+      "on_false": {
+        "type": "minecraft:model",
+        "model": "linkedchests:item/linked_pouch_personal",
+        "tints": [
+          {
+            "type": "minecraft:constant",
+            "value": -1
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "left"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "middle"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "right"
+          }
+        ]
+      },
+      "on_true": {
+        "type": "minecraft:model",
+        "model": "linkedchests:item/linked_pouch_open_personal",
+        "tints": [
+          {
+            "type": "minecraft:constant",
+            "value": -1
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "left"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "middle"
+          },
+          {
+            "type": "linkedchests:dye_channel",
+            "dye_slot": "right"
+          }
+        ]
+      },
+      "property": "linkedchests:linked_pouch/open"
+    },
+    "property": "linkedchests:linked_pouch/personal"
+  }
+}

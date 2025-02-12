@@ -1,124 +1,112 @@
 package fuzs.linkedchests.data.client;
 
-import fuzs.linkedchests.client.LinkedChestsClient;
+import fuzs.linkedchests.client.color.item.DyeChannelTintSource;
+import fuzs.linkedchests.client.renderer.blockentity.LinkedChestRendererImpl;
+import fuzs.linkedchests.client.renderer.item.properties.conditional.LinkedPouchOpenModelProperty;
+import fuzs.linkedchests.client.renderer.item.properties.conditional.LinkedPouchPersonalModelProperty;
+import fuzs.linkedchests.client.renderer.special.LinkedChestSpecialRenderer;
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.puzzleslib.api.client.data.v2.AbstractModelProvider;
-import fuzs.puzzleslib.api.client.data.v2.ItemModelProperties;
-import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
+import fuzs.puzzleslib.api.client.data.v2.models.ModelLocationHelper;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
-import net.minecraft.data.models.BlockModelGenerators;
-import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.data.models.model.*;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.model.*;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.special.ChestSpecialRenderer;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 public class ModModelProvider extends AbstractModelProvider {
-    public static final ModelTemplate CHEST_TEMPLATE = new ModelTemplate(
-            Optional.of(decorateItemModelLocation(ResourceLocationHelper.withDefaultNamespace("chest"))),
-            Optional.empty(), TextureSlot.PARTICLE
-    );
+    public static final TextureSlot LAYER3_TEXTURE_SLOT = TextureSlot.create("layer3");
+    public static final ModelTemplate FOUR_LAYERED_ITEM = ModelTemplates.createItem("generated",
+            TextureSlot.LAYER0,
+            TextureSlot.LAYER1,
+            TextureSlot.LAYER2,
+            LAYER3_TEXTURE_SLOT);
 
     public ModModelProvider(DataProviderContext context) {
         super(context);
     }
 
     @Override
-    public void addBlockModels(BlockModelGenerators builder) {
-        builder.blockEntityModels(ModelLocationUtils.getModelLocation(ModRegistry.LINKED_CHEST_BLOCK.value()),
-                Blocks.END_STONE
-        ).createWithoutBlockItem(ModRegistry.LINKED_CHEST_BLOCK.value());
+    public void addBlockModels(BlockModelGenerators blockModelGenerators) {
+        this.createChest(ModRegistry.LINKED_CHEST_BLOCK.value(),
+                Blocks.END_STONE,
+                LinkedChestRendererImpl.LINKED_CHEST_TEXTURE,
+                true,
+                LinkedChestSpecialRenderer.Unbaked::new,
+                blockModelGenerators);
+    }
+
+    public final void createChest(Block chestBlock, Block particleBlock, ResourceLocation texture, boolean useGiftTexture, Function<ResourceLocation, SpecialModelRenderer.Unbaked> unbakedRendererFactory, BlockModelGenerators blockModelGenerators) {
+        blockModelGenerators.createParticleOnlyBlock(chestBlock, particleBlock);
+        Item item = chestBlock.asItem();
+        ResourceLocation resourceLocation = ModelTemplates.CHEST_INVENTORY.create(item,
+                TextureMapping.particle(particleBlock),
+                blockModelGenerators.modelOutput);
+        ItemModel.Unbaked unbaked = ItemModelUtils.specialModel(resourceLocation,
+                unbakedRendererFactory.apply(texture));
+        if (useGiftTexture) {
+            ItemModel.Unbaked unbaked2 = ItemModelUtils.specialModel(resourceLocation,
+                    unbakedRendererFactory.apply(ChestSpecialRenderer.GIFT_CHEST_TEXTURE));
+            blockModelGenerators.itemModelOutput.accept(item, ItemModelUtils.isXmas(unbaked2, unbaked));
+        } else {
+            blockModelGenerators.itemModelOutput.accept(item, unbaked);
+        }
     }
 
     @Override
-    public void addItemModels(ItemModelGenerators builder) {
-        CHEST_TEMPLATE.create(ModelLocationUtils.getModelLocation(ModRegistry.LINKED_CHEST_ITEM.value()),
-                TextureMapping.particle(Blocks.END_STONE), builder.output
-        );
-        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value());
-        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value(), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, null,
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL
-        );
-        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value(), null, null,
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL
-        );
-        createLinkedPouchItem(builder, ModRegistry.LINKED_POUCH_ITEM.value(), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, null,
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN
-        );
+    public void addItemModels(ItemModelGenerators itemModelGenerators) {
+        this.generateLinkedPouch(ModRegistry.LINKED_POUCH_ITEM.value(), itemModelGenerators);
     }
 
-    private static void createLinkedPouchItem(ItemModelGenerators builder, Item item) {
-        ResourceLocation modelLocation = getModelLocation(item);
-        ItemModelProperties[] itemModelProperties = new ItemModelProperties[3];
-        itemModelProperties[2] = ItemModelProperties.twoOverrides(
-                getModelLocationWithSuffix(modelLocation, LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN,
-                        LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL
-                ), LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, 1.0F, LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL,
-                1.0F
-        );
-        itemModelProperties[1] = ItemModelProperties.singleOverride(
-                getModelLocationWithSuffix(modelLocation, LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL),
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_PERSONAL, 1.0F
-        );
-        itemModelProperties[0] = ItemModelProperties.singleOverride(
-                getModelLocationWithSuffix(modelLocation, LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN),
-                LinkedChestsClient.ITEM_MODEL_PROPERTY_OPEN, 1.0F
-        );
-        ModelTemplate.JsonFactory jsonFactory = ItemModelProperties.overridesFactory(ModelTemplates.FLAT_ITEM,
-                itemModelProperties
-        );
-        createLinkedPouchItem(builder, item, null, jsonFactory);
+    public final void generateLinkedPouch(Item item, ItemModelGenerators itemModelGenerators) {
+        ItemModel.Unbaked itemModel = this.createLinkedPouch(ModelLocationHelper.getItemModel(item),
+                ModelLocationHelper.getItemTexture(item),
+                ModelLocationHelper.getItemTexture(item),
+                itemModelGenerators);
+        ItemModel.Unbaked openModel = this.createLinkedPouch(ModelLocationHelper.getItemModel(item, "_open"),
+                ModelLocationHelper.getItemTexture(item, "_open"),
+                ModelLocationHelper.getItemTexture(item, "_open"),
+                itemModelGenerators);
+        ItemModel.Unbaked personalModel = this.createLinkedPouch(ModelLocationHelper.getItemModel(item, "_personal"),
+                ModelLocationHelper.getItemTexture(item, "_personal"),
+                ModelLocationHelper.getItemTexture(item),
+                itemModelGenerators);
+        ItemModel.Unbaked openPersonalModel = this.createLinkedPouch(ModelLocationHelper.getItemModel(item,
+                        "_open_personal"),
+                ModelLocationHelper.getItemTexture(item, "_open_personal"),
+                ModelLocationHelper.getItemTexture(item, "_open"),
+                itemModelGenerators);
+        ItemModel.Unbaked falseModel = ItemModelUtils.conditional(new LinkedPouchOpenModelProperty(),
+                openModel,
+                itemModel);
+        ItemModel.Unbaked trueModel = ItemModelUtils.conditional(new LinkedPouchOpenModelProperty(),
+                openPersonalModel,
+                personalModel);
+        itemModelGenerators.generateBooleanDispatch(item,
+                new LinkedPouchPersonalModelProperty(),
+                trueModel,
+                falseModel);
     }
 
-    private static void createLinkedPouchItem(ItemModelGenerators builder, Item item, @Nullable ResourceLocation layerLocation, @Nullable ModelTemplate.JsonFactory jsonFactory, ResourceLocation... itemModelProperties) {
-        if (layerLocation == null) {
-            layerLocation = getModelLocation(item);
-        } else {
-            layerLocation = getModelLocation(item).withSuffix("_" + layerLocation.getPath());
-        }
-        ResourceLocation modelLocation = getModelLocationWithSuffix(getModelLocation(item), itemModelProperties);
-        TextureSlot[] textureSlots = createTextureSlotLayers(4);
-        TextureMapping textureMapping = layered(modelLocation, layerLocation, textureSlots, "_button1", "_button2", "_button3");
-        ModelTemplate modelTemplate = ModelTemplates.createItem("generated", textureSlots);
-        if (jsonFactory != null) {
-            modelTemplate.create(modelLocation, textureMapping, builder.output, jsonFactory);
-        } else {
-            modelTemplate.create(modelLocation, textureMapping, builder.output);
-        }
-    }
-
-    public static ResourceLocation getModelLocationWithSuffix(ResourceLocation modelLocation, ResourceLocation... itemModelProperties) {
-        String suffix = Arrays.stream(itemModelProperties).map(ResourceLocation::getPath).collect(
-                Collectors.joining("_"));
-        if (!suffix.isEmpty()) {
-            return modelLocation.withSuffix("_" + suffix);
-        } else {
-            return modelLocation;
-        }
-    }
-
-    public static TextureSlot[] createTextureSlotLayers(int size) {
-        // just dynamically creates layer texture slots for a specified size, Minecraft is supposed to support up to 5
-        TextureSlot[] textureSlots = new TextureSlot[size];
-        for (int i = 0; i < textureSlots.length; i++) {
-            textureSlots[i] = TextureSlot.create("layer" + i);
-        }
-        return textureSlots;
-    }
-
-    public static TextureMapping layered(ResourceLocation initialLayerLocation, ResourceLocation layerLocation, TextureSlot[] textureSlots, String... layerSuffixes) {
-        // add the suffixes to the resource location for all layers past zero
-        TextureMapping textureMapping = new TextureMapping();
-        for (int i = 0; i < textureSlots.length; i++) {
-            ResourceLocation textureLocation = i == 0 ? initialLayerLocation : layerLocation.withSuffix(
-                    layerSuffixes[i - 1]);
-            textureMapping.put(textureSlots[i], textureLocation);
-        }
-        return textureMapping;
+    public final ItemModel.Unbaked createLinkedPouch(ResourceLocation itemModel, ResourceLocation baseLocation, ResourceLocation dyeSlotLocation, ItemModelGenerators itemModelGenerators) {
+        TextureMapping textureMapping = new TextureMapping().put(TextureSlot.LAYER0, baseLocation)
+                .put(TextureSlot.LAYER1, dyeSlotLocation.withSuffix("_left_dye_slot"))
+                .put(TextureSlot.LAYER2, dyeSlotLocation.withSuffix("_middle_dye_slot"))
+                .put(LAYER3_TEXTURE_SLOT, dyeSlotLocation.withSuffix("_right_dye_slot"));
+        return ItemModelUtils.tintedModel(FOUR_LAYERED_ITEM.create(itemModel,
+                        textureMapping,
+                        itemModelGenerators.modelOutput),
+                ItemModelUtils.constantTint(-1),
+                new DyeChannelTintSource(DyeChannelTintSource.DyeSlot.LEFT),
+                new DyeChannelTintSource(DyeChannelTintSource.DyeSlot.MIDDLE),
+                new DyeChannelTintSource(DyeChannelTintSource.DyeSlot.RIGHT));
     }
 }

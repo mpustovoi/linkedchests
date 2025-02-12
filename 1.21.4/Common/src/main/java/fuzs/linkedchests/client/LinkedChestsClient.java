@@ -3,35 +3,32 @@ package fuzs.linkedchests.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import fuzs.linkedchests.LinkedChests;
+import fuzs.linkedchests.client.color.item.DyeChannelTintSource;
 import fuzs.linkedchests.client.handler.DyeChannelLidController;
 import fuzs.linkedchests.client.model.LinkedChestModel;
-import fuzs.linkedchests.client.renderer.blockentity.LinkedChestRenderer;
+import fuzs.linkedchests.client.renderer.blockentity.LinkedChestBlockEntityRenderer;
+import fuzs.linkedchests.client.renderer.blockentity.LinkedChestRendererImpl;
+import fuzs.linkedchests.client.renderer.item.properties.conditional.LinkedPouchOpenModelProperty;
+import fuzs.linkedchests.client.renderer.item.properties.conditional.LinkedPouchPersonalModelProperty;
+import fuzs.linkedchests.client.renderer.special.LinkedChestSpecialRenderer;
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.level.block.HighlightShapeProvider;
-import fuzs.linkedchests.world.level.block.entity.DyeChannel;
-import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
-import fuzs.puzzleslib.api.client.core.v1.context.*;
+import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
+import fuzs.puzzleslib.api.client.core.v1.context.ItemModelsContext;
+import fuzs.puzzleslib.api.client.core.v1.context.LayerDefinitionsContext;
+import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
 import fuzs.puzzleslib.api.client.event.v1.ClientTickEvents;
 import fuzs.puzzleslib.api.client.event.v1.entity.player.ClientPlayerNetworkEvents;
 import fuzs.puzzleslib.api.client.event.v1.renderer.RenderHighlightCallback;
 import fuzs.puzzleslib.api.event.v1.core.EventResult;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -39,8 +36,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class LinkedChestsClient implements ClientModConstructor {
-    public static final ResourceLocation ITEM_MODEL_PROPERTY_OPEN = LinkedChests.id("open");
-    public static final ResourceLocation ITEM_MODEL_PROPERTY_PERSONAL = LinkedChests.id("personal");
 
     @Override
     public void onConstructMod() {
@@ -80,21 +75,14 @@ public class LinkedChestsClient implements ClientModConstructor {
     }
 
     @Override
-    public void onRegisterItemModelProperties(ItemModelPropertiesContext context) {
-        context.registerItemProperty(ITEM_MODEL_PROPERTY_OPEN,
-                (ItemStack itemStack, ClientLevel clientLevel, LivingEntity entity, int seed) -> {
-                    DyeChannel dyeChannel = itemStack.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
-                            DyeChannel.DEFAULT);
-                    return Mth.ceil(DyeChannelLidController.getChestLidController(dyeChannel).getOpenness(1.0F));
-                },
-                ModRegistry.LINKED_POUCH_ITEM.value());
-        context.registerItemProperty(ITEM_MODEL_PROPERTY_PERSONAL,
-                (ItemStack itemStack, ClientLevel clientLevel, LivingEntity entity, int seed) -> {
-                    DyeChannel dyeChannel = itemStack.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
-                            DyeChannel.DEFAULT);
-                    return dyeChannel.uuid().isPresent() ? 1.0F : 0.0F;
-                },
-                ModRegistry.LINKED_POUCH_ITEM.value());
+    public void onRegisterItemModels(ItemModelsContext context) {
+        context.registerItemTintSource(LinkedChests.id("dye_channel"), DyeChannelTintSource.MAP_CODEC);
+        context.registerConditionalItemModelProperty(LinkedChests.id("linked_pouch/open"),
+                LinkedPouchOpenModelProperty.MAP_CODEC);
+        context.registerConditionalItemModelProperty(LinkedChests.id("linked_pouch/personal"),
+                LinkedPouchPersonalModelProperty.MAP_CODEC);
+        context.registerSpecialModelRenderer(LinkedChests.id("linked_chest"),
+                LinkedChestSpecialRenderer.Unbaked.MAP_CODEC);
     }
 
     @Override
@@ -107,43 +95,13 @@ public class LinkedChestsClient implements ClientModConstructor {
 
     @Override
     public void onRegisterLayerDefinitions(LayerDefinitionsContext context) {
-        context.registerLayerDefinition(LinkedChestRenderer.MODEL_LAYER_LOCATION,
+        context.registerLayerDefinition(LinkedChestRendererImpl.LINKED_CHEST_MODEL_LAYER_LOCATION,
                 LinkedChestModel::createSingleBodyLayer);
     }
 
     @Override
     public void onRegisterBlockEntityRenderers(BlockEntityRenderersContext context) {
-        context.registerBlockEntityRenderer(ModRegistry.LINKED_CHEST_BLOCK_ENTITY.value(), LinkedChestRenderer::new);
-    }
-
-    @Override
-    public void onRegisterItemColorProviders(ColorProvidersContext<Item, ItemColor> context) {
-        context.registerColorProvider((ItemStack itemStack, int layer) -> {
-            DyeChannel dyeChannel = itemStack.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
-                    DyeChannel.DEFAULT);
-            DyeColor dyeColor = switch (layer) {
-                case 1 -> dyeChannel.leftColor();
-                case 2 -> dyeChannel.middleColor();
-                case 3 -> dyeChannel.rightColor();
-                default -> DyeColor.WHITE;
-            };
-            return ARGB.opaque(dyeColor.getMapColor().col);
-        }, ModRegistry.LINKED_CHEST_ITEM.value(), ModRegistry.LINKED_POUCH_ITEM.value());
-    }
-
-    @Override
-    public void onRegisterBuiltinModelItemRenderers(BuiltinModelItemRendererContext context) {
-        LinkedChestBlockEntity blockEntity = new LinkedChestBlockEntity(BlockPos.ZERO,
-                ModRegistry.LINKED_CHEST_BLOCK.value().defaultBlockState());
-        context.registerItemRenderer((ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, int packedOverlay) -> {
-            DyeChannel dyeChannel = itemStack.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
-                    DyeChannel.DEFAULT);
-            blockEntity.setDyeChannel(dyeChannel);
-            poseStack.pushPose();
-            Minecraft.getInstance()
-                    .getBlockEntityRenderDispatcher()
-                    .renderItem(blockEntity, poseStack, multiBufferSource, packedLight, packedOverlay);
-            poseStack.popPose();
-        }, ModRegistry.LINKED_CHEST_BLOCK.value());
+        context.registerBlockEntityRenderer(ModRegistry.LINKED_CHEST_BLOCK_ENTITY.value(),
+                LinkedChestBlockEntityRenderer::new);
     }
 }

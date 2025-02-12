@@ -14,7 +14,7 @@ public final class DyeChannelLidController {
     private static final Map<DyeChannel, ChestLidController> CHEST_LID_CONTROLLERS = new HashMap<>();
 
     public static ChestLidController getChestLidController(DyeChannel dyeChannel) {
-        return CHEST_LID_CONTROLLERS.computeIfAbsent(dyeChannel, $ -> new ChestLidController());
+        return CHEST_LID_CONTROLLERS.computeIfAbsent(dyeChannel, (DyeChannel dyeChannelX) -> new ChestLidController());
     }
 
     public static void onEndClientTick(Minecraft minecraft) {

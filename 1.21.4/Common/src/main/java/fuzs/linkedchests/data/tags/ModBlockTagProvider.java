@@ -1,8 +1,8 @@
-package fuzs.linkedchests.data;
+package fuzs.linkedchests.data.tags;
 
+import fuzs.linkedchests.init.ModRegistry;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
 import fuzs.puzzleslib.api.data.v2.tags.AbstractTagProvider;
-import fuzs.linkedchests.init.ModRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.BlockTags;
@@ -16,6 +16,6 @@ public class ModBlockTagProvider extends AbstractTagProvider<Block> {
 
     @Override
     public void addTags(HolderLookup.Provider registries) {
-        this.add(BlockTags.MINEABLE_WITH_PICKAXE).add(ModRegistry.LINKED_CHEST_BLOCK);
+        this.tag(BlockTags.MINEABLE_WITH_PICKAXE).add(ModRegistry.LINKED_CHEST_BLOCK);
     }
 }

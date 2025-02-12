@@ -22,10 +22,12 @@ public class ModBlockLootProvider extends AbstractLootProvider.Blocks {
     }
 
     public LootTable.Builder createLinkedChestDrop(Block block) {
-        return LootTable.lootTable().withPool(this.applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1.0F))
-                .add(LootItem.lootTableItem(block)
-                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
-                                .include(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value())))));
+        return LootTable.lootTable()
+                .withPool(this.applyExplosionCondition(block,
+                        LootPool.lootPool()
+                                .setRolls(ConstantValue.exactly(1.0F))
+                                .add(LootItem.lootTableItem(block)
+                                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                                .include(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value())))));
     }
 }

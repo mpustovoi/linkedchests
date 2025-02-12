@@ -14,7 +14,7 @@ import java.util.List;
 public class LinkedChestModel extends ChestModel {
     private final ModelPart bottom;
     private final ModelPart lid;
-    private final ModelPart lock, personalLock;
+    private final ModelPart lock;
     private final ModelPart[] buttons = new ModelPart[3];
 
     public LinkedChestModel(ModelPart root) {
@@ -22,7 +22,6 @@ public class LinkedChestModel extends ChestModel {
         this.bottom = root.getChild("bottom");
         this.lid = root.getChild("lid");
         this.lock = root.getChild("lock");
-        this.personalLock = root.getChild("personal_lock");
         this.buttons[0] = root.getChild("left_button");
         this.buttons[1] = root.getChild("middle_button");
         this.buttons[2] = root.getChild("right_button");
@@ -34,9 +33,6 @@ public class LinkedChestModel extends ChestModel {
 
     private static MeshDefinition applyLinkedChestTransformation(MeshDefinition meshDefinition) {
         PartDefinition partDefinition = meshDefinition.getRoot();
-        partDefinition.addOrReplaceChild("personal_lock",
-                CubeListBuilder.create().texOffs(0, 0).addBox(7.0F, -1.0F, 15.0F, 2.0F, 4.0F, 1.0F),
-                PartPose.offset(0.0F, 8.0F, 0.0F));
         partDefinition.addOrReplaceChild("left_button",
                 CubeListBuilder.create().texOffs(0, 5).addBox(4.0F, 5.0F, 5.0F, 2.0F, 1.0F, 4.0F),
                 PartPose.offset(0.0F, 9.0F, 1.0F));
@@ -52,7 +48,6 @@ public class LinkedChestModel extends ChestModel {
     @Override
     public void setupAnim(float openness) {
         super.setupAnim(openness);
-        this.personalLock.xRot = this.lid.xRot;
         for (ModelPart modelPart : this.buttons) {
             modelPart.xRot = this.lid.xRot;
         }
@@ -62,8 +57,8 @@ public class LinkedChestModel extends ChestModel {
         return List.of(this.bottom, this.lid);
     }
 
-    public List<ModelPart> getLockModelParts(boolean isPersonalChannel) {
-        return Collections.singletonList(isPersonalChannel ? this.personalLock : this.lock);
+    public List<ModelPart> getLockModelParts() {
+        return Collections.singletonList(this.lock);
     }
 
     public List<ModelPart> getButtonModelParts(int index) {

@@ -1,8 +1,10 @@
-// 1.21.3	2024-12-26T17:49:40.252405	Model Definitions
+// 1.21.4	2025-02-12T11:45:01.615828	Model Definitions
 01aa971e2f0d23454263eeb9938c2dceb6dbd8e3 assets/linkedchests/blockstates/linked_chest.json
+59959300d5e0a5acb9326f9f3484559bf077a81d assets/linkedchests/items/linked_chest.json
+51edf42204c84eb99724d267f181a786d2486f75 assets/linkedchests/items/linked_pouch.json
 9744590b56a1b95883dc4fc074d09d164f0784a8 assets/linkedchests/models/block/linked_chest.json
-9a777d7c9978827514597702967079d6a4c8319d assets/linkedchests/models/item/linked_chest.json
-27aeee43cd75684440960cf190dc95ab376e5236 assets/linkedchests/models/item/linked_pouch.json
-0695b513e00628bdb583266456bd8da75435f29a assets/linkedchests/models/item/linked_pouch_open.json
-763035f869b4c7d7520908488ad43776519e74ac assets/linkedchests/models/item/linked_pouch_open_personal.json
-ec3c59efc9b70e2f22da513b7e5af1e2310e6b8c assets/linkedchests/models/item/linked_pouch_personal.json
+0a878f0e64d9bf96b4f6ba73afb59e242a7ae9d7 assets/linkedchests/models/item/linked_chest.json
+5f352012b72413dc3c4819a363d84513f1188896 assets/linkedchests/models/item/linked_pouch.json
+c5c670a9ba59dfb8fa5516fdbe9cb255697e29a0 assets/linkedchests/models/item/linked_pouch_open.json
+219de404802c80a06ea7891d57a67ac73bd52846 assets/linkedchests/models/item/linked_pouch_open_personal.json
+46ea5aa48639d7dc897afd8b40de8a671eeb1f22 assets/linkedchests/models/item/linked_pouch_personal.json

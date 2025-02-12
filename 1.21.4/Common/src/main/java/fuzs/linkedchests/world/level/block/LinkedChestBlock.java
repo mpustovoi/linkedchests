@@ -188,8 +188,8 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
     }
 
     @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState blockState) {
-        ItemStack itemStack = super.getCloneItemStack(level, pos, blockState);
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState blockState, boolean includeData) {
+        ItemStack itemStack = super.getCloneItemStack(level, pos, blockState, includeData);
         if (level.getBlockEntity(pos) instanceof LinkedChestBlockEntity blockEntity) {
             itemStack.set(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), blockEntity.getDyeChannel());
         }

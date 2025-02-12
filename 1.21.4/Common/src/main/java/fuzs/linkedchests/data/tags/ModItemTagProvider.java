@@ -1,4 +1,4 @@
-package fuzs.linkedchests.data;
+package fuzs.linkedchests.data.tags;
 
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.puzzleslib.api.data.v2.core.DataProviderContext;
@@ -17,8 +17,8 @@ public class ModItemTagProvider extends AbstractTagProvider<Item> {
 
     @Override
     public void addTags(HolderLookup.Provider registries) {
-        this.add(ItemTags.VANISHING_ENCHANTABLE).add(ModRegistry.LINKED_POUCH_ITEM);
-        this.add(ModRegistry.DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG).addOptionalTag("c:dyes");
-        this.add(ModRegistry.PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG).add(Items.DIAMOND);
+        this.tag(ItemTags.VANISHING_ENCHANTABLE).add(ModRegistry.LINKED_POUCH_ITEM);
+        this.tag(ModRegistry.DYE_CHANNEL_COLOR_PROVIDERS_ITEM_TAG).addOptionalTag("c:dyes");
+        this.tag(ModRegistry.PERSONAL_CHANNEL_PROVIDERS_ITEM_TAG).add(Items.DIAMOND);
     }
 }

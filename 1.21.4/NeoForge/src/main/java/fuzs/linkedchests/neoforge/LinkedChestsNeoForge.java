@@ -2,8 +2,8 @@ package fuzs.linkedchests.neoforge;
 
 import fuzs.linkedchests.LinkedChests;
 import fuzs.linkedchests.data.ModBlockLootProvider;
-import fuzs.linkedchests.data.ModBlockTagProvider;
-import fuzs.linkedchests.data.ModItemTagProvider;
+import fuzs.linkedchests.data.tags.ModBlockTagProvider;
+import fuzs.linkedchests.data.tags.ModItemTagProvider;
 import fuzs.linkedchests.data.ModRecipeProvider;
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;

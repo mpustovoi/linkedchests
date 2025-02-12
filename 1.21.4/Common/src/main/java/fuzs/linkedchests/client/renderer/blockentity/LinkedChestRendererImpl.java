@@ -4,55 +4,61 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import fuzs.linkedchests.LinkedChests;
 import fuzs.linkedchests.client.model.LinkedChestModel;
-import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
+import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.puzzleslib.api.client.init.v1.ModelLayerFactory;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
-public class LinkedChestRenderer extends SingleChestRenderer<LinkedChestBlockEntity, LinkedChestModel> {
-    static final ModelLayerFactory FACTORY = ModelLayerFactory.from(LinkedChests.MOD_ID);
-    public static final ModelLayerLocation MODEL_LAYER_LOCATION = FACTORY.register("linked_chest");
-    private static final Material LINKED_CHEST_LOCATION = new Material(Sheets.CHEST_SHEET,
-            LinkedChests.id("entity/chest/linked"));
-    private static final Material LINKED_CHEST_BUTTONS_LOCATION = new Material(Sheets.CHEST_SHEET,
-            LinkedChests.id("entity/chest/buttons"));
+public class LinkedChestRendererImpl {
+    static final ModelLayerFactory MODEL_LAYERS = ModelLayerFactory.from(LinkedChests.MOD_ID);
+    public static final ModelLayerLocation LINKED_CHEST_MODEL_LAYER_LOCATION = MODEL_LAYERS.registerModelLayer(
+            "linked_chest");
+    public static final ResourceLocation LINKED_CHEST_TEXTURE = LinkedChests.id("linked");
+    public static final Material LINKED_CHEST_LOCATION = Sheets.chestMaterial(LINKED_CHEST_TEXTURE);
+    private static final Material LINKED_CHEST_BUTTONS_LOCATION = Sheets.chestMaterial(LinkedChests.id("linked_buttons"));
 
-    public LinkedChestRenderer(BlockEntityRendererProvider.Context context) {
-        super(context, new LinkedChestModel(context.bakeLayer(MODEL_LAYER_LOCATION)));
+    public final LinkedChestModel model;
+    private final RenderState renderState = new RenderState();
+
+    public LinkedChestRendererImpl(LinkedChestModel model) {
+        this.model = model;
     }
 
-    @Override
-    protected void renderModel(LinkedChestBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void extractRenderState(Material chestMaterial, DyeChannel dyeChannel) {
+        this.renderState.baseMaterial = chestMaterial;
+        this.renderState.lockMaterial = dyeChannel.uuid().isPresent() ? LINKED_CHEST_BUTTONS_LOCATION : chestMaterial;
+        this.renderState.slotMaterial = LINKED_CHEST_BUTTONS_LOCATION;
+        this.renderState.slotColors = dyeChannel.dyeColors();
+    }
+
+    public void renderModel(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         this.renderModelParts(this.model.getBaseModelParts(),
-                this.getChestMaterial(blockEntity, this.xmasTextures),
+                this.renderState.baseMaterial,
                 poseStack,
                 bufferSource,
                 packedLight,
                 packedOverlay);
-        boolean isPersonalChannel = blockEntity.getDyeChannel().uuid().isPresent();
-        this.renderModelParts(this.model.getLockModelParts(isPersonalChannel),
-                isPersonalChannel ? LINKED_CHEST_BUTTONS_LOCATION :
-                        this.getChestMaterial(blockEntity, this.xmasTextures),
+        this.renderModelParts(this.model.getLockModelParts(),
+                this.renderState.lockMaterial,
                 poseStack,
                 bufferSource,
                 packedLight,
                 packedOverlay);
-        int[] dyeColors = blockEntity.getDyeChannel().dyeColors();
-        for (int i = 0; i < dyeColors.length; i++) {
+        for (int i = 0; i < this.renderState.slotColors.length; i++) {
             this.renderModelParts(this.model.getButtonModelParts(i),
-                    LINKED_CHEST_BUTTONS_LOCATION,
+                    this.renderState.slotMaterial,
                     poseStack,
                     bufferSource,
                     packedLight,
                     packedOverlay,
-                    dyeColors[i]);
+                    this.renderState.slotColors[i]);
         }
     }
 
@@ -73,11 +79,13 @@ public class LinkedChestRenderer extends SingleChestRenderer<LinkedChestBlockEnt
     }
 
     private void resetDrawForAllParts() {
-        this.model.allParts().forEach(part -> part.skipDraw = false);
+        this.model.allParts().forEach((ModelPart modelPart) -> modelPart.skipDraw = false);
     }
 
-    @Override
-    protected Material getChestMaterial(LinkedChestBlockEntity blockEntity, boolean holiday) {
-        return holiday ? Sheets.CHEST_XMAS_LOCATION : LINKED_CHEST_LOCATION;
+    private static class RenderState {
+        public Material baseMaterial = LINKED_CHEST_LOCATION;
+        public Material lockMaterial = LINKED_CHEST_LOCATION;
+        public Material slotMaterial = LINKED_CHEST_BUTTONS_LOCATION;
+        public int[] slotColors = new int[3];
     }
 }
