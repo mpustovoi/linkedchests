@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "linkedchests:item/linked_pouch_open",
+    "layer1": "linkedchests:item/linked_pouch_open_left_dye_slot",
+    "layer2": "linkedchests:item/linked_pouch_open_middle_dye_slot",
+    "layer3": "linkedchests:item/linked_pouch_open_right_dye_slot"
+  }
+}
