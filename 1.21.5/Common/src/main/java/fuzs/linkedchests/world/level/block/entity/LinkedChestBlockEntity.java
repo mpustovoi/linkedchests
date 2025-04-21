@@ -8,9 +8,9 @@ import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,21 +44,15 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     @Override
     public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         super.loadAdditional(compoundTag, registries);
-        this.dyeChannel = DyeChannel.CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE),
-                compoundTag.getCompound(KEY_DYE_CHANNEL)
-        ).resultOrPartial(LinkedChests.LOGGER::error).orElse(DyeChannel.DEFAULT);
-        this.latchItem = ItemStack.parseOptional(registries, compoundTag.getCompound(KEY_LATCH_ITEM));
+        this.dyeChannel = compoundTag.read(KEY_DYE_CHANNEL, DyeChannel.CODEC).orElse(DyeChannel.DEFAULT);
+        this.latchItem = compoundTag.read(KEY_LATCH_ITEM, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override
     public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
         super.saveAdditional(compoundTag, registries);
-        DyeChannel.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this.dyeChannel)
-                .resultOrPartial(LinkedChests.LOGGER::error)
-                .ifPresent(tag -> compoundTag.put(KEY_DYE_CHANNEL, tag));
-        if (!this.latchItem.isEmpty()) {
-            compoundTag.put(KEY_LATCH_ITEM, this.latchItem.save(registries));
-        }
+        compoundTag.store(KEY_DYE_CHANNEL, DyeChannel.CODEC, this.dyeChannel);
+        compoundTag.store(KEY_LATCH_ITEM, ItemStack.OPTIONAL_CODEC, this.latchItem);
     }
 
     public DyeChannel getDyeChannel() {
@@ -115,18 +109,18 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     @Override
     public void startOpen(Player player) {
         if (!this.remove && player instanceof ServerPlayer serverPlayer && !player.isSpectator()) {
-            this.getStorage().openersCounter().incrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(),
-                    SoundSource.BLOCKS
-            );
+            this.getStorage()
+                    .openersCounter()
+                    .incrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(), SoundSource.BLOCKS);
         }
     }
 
     @Override
     public void stopOpen(Player player) {
         if (!this.remove && player instanceof ServerPlayer serverPlayer && !player.isSpectator()) {
-            this.getStorage().openersCounter().decrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(),
-                    SoundSource.BLOCKS
-            );
+            this.getStorage()
+                    .openersCounter()
+                    .decrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(), SoundSource.BLOCKS);
         }
     }
 
@@ -160,9 +154,9 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
-        super.applyImplicitComponents(componentInput);
-        this.dyeChannel = componentInput.get(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value());
+    protected void applyImplicitComponents(DataComponentGetter dataComponentGetter) {
+        super.applyImplicitComponents(dataComponentGetter);
+        this.dyeChannel = dataComponentGetter.get(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value());
     }
 
     @Override

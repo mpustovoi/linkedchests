@@ -21,8 +21,9 @@ public class LinkedChestRendererImpl {
     public static final ModelLayerLocation LINKED_CHEST_MODEL_LAYER_LOCATION = MODEL_LAYERS.registerModelLayer(
             "linked_chest");
     public static final ResourceLocation LINKED_CHEST_TEXTURE = LinkedChests.id("linked");
-    public static final Material LINKED_CHEST_LOCATION = Sheets.chestMaterial(LINKED_CHEST_TEXTURE);
-    private static final Material LINKED_CHEST_BUTTONS_LOCATION = Sheets.chestMaterial(LinkedChests.id("linked_buttons"));
+    public static final Material LINKED_CHEST_LOCATION = Sheets.CHEST_MAPPER.apply(LINKED_CHEST_TEXTURE);
+    private static final Material LINKED_CHEST_BUTTONS_LOCATION = Sheets.CHEST_MAPPER.apply(LinkedChests.id(
+            "linked_buttons"));
 
     public final LinkedChestModel model;
     private final RenderState renderState = new RenderState();

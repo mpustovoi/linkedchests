@@ -15,6 +15,6 @@ public record DyeChannelStorage(NonNullList<ItemStack> items, LinkedChestOpeners
     }
 
     public DyeChannelStorage(NonNullList<ItemStack> items) {
-        this(items, new LinkedChestOpenersCounter(otherItems -> items == otherItems));
+        this(items, new LinkedChestOpenersCounter((NonNullList<ItemStack> itemX) -> items == itemX));
     }
 }

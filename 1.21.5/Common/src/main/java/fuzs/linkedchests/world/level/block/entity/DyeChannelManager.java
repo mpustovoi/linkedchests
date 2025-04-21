@@ -3,82 +3,71 @@ package fuzs.linkedchests.world.level.block.entity;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fuzs.linkedchests.LinkedChests;
 import fuzs.puzzleslib.api.event.v1.server.ServerLifecycleEvents;
 import fuzs.puzzleslib.api.event.v1.server.ServerTickEvents;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public final class DyeChannelManager extends SavedData {
-    static final String KEY_CHANNELS = LinkedChests.id("channels").toString();
-    public static final Codec<Map<DyeChannel, DyeChannelStorage>> CODEC = Codec.mapPair(
-            DyeChannel.CODEC.fieldOf("dye_channel"), DyeChannelStorage.CODEC.fieldOf("storage")).codec().listOf().xmap(
-            (List<Pair<DyeChannel, DyeChannelStorage>> list) -> {
-                return list.stream().collect(
-                        ImmutableMap.<Pair<DyeChannel, DyeChannelStorage>, DyeChannel, DyeChannelStorage>toImmutableMap(
-                                Pair::getFirst, Pair::getSecond));
-            }, (Map<DyeChannel, DyeChannelStorage> map) -> map.entrySet()
-                    .stream()
-                    .map((Map.Entry<DyeChannel, DyeChannelStorage> entry) -> new Pair<>(entry.getKey(),
-                            entry.getValue()
-                    ))
-                    .toList());
+    public static final Codec<DyeChannelManager> CODEC = RecordCodecBuilder.create(instance -> instance.group(map(
+            DyeChannel.CODEC,
+            DyeChannelStorage.CODEC).optionalFieldOf("dye_channels", Collections.emptyMap())
+            .forGetter(DyeChannelManager::getDyeChannels)).apply(instance, DyeChannelManager::new));
+    public static final SavedDataType<DyeChannelManager> TYPE = new SavedDataType<>(LinkedChests.id(
+            "dye_channel_manager").toString(), DyeChannelManager::new, CODEC, null);
     private static DyeChannelManager instance;
 
-    private final Map<DyeChannel, DyeChannelStorage> channels;
+    private final Map<DyeChannel, DyeChannelStorage> dyeChannels;
 
     private DyeChannelManager() {
-        this.channels = new HashMap<>();
+        this.dyeChannels = new Object2ObjectArrayMap<>();
     }
 
-    private DyeChannelManager(Map<DyeChannel, DyeChannelStorage> channels) {
-        this.channels = new HashMap<>(channels);
+    private DyeChannelManager(Map<DyeChannel, DyeChannelStorage> dyeChannels) {
+        this.dyeChannels = new Object2ObjectArrayMap<>(dyeChannels);
     }
 
-    private static SavedData.Factory<DyeChannelManager> factory() {
-        return new SavedData.Factory<>(DyeChannelManager::new, DyeChannelManager::load, null);
+    @Deprecated
+    public static <K, V> Codec<Map<K, V>> map(Codec<K> keyCodec, Codec<V> valueCodec) {
+        return map(keyCodec.fieldOf("key"), valueCodec.fieldOf("value"));
     }
 
-    private static DyeChannelManager load(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        return CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE),
-                compoundTag.getList(KEY_CHANNELS, Tag.TAG_COMPOUND)
-        ).resultOrPartial(LinkedChests.LOGGER::error).map(DyeChannelManager::new).orElseGet(DyeChannelManager::new);
-    }
-
-    @Override
-    public CompoundTag save(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this.channels).resultOrPartial(
-                LinkedChests.LOGGER::error).ifPresent((Tag tag) -> {
-            compoundTag.put(KEY_CHANNELS, tag);
-        });
-        return compoundTag;
+    @Deprecated
+    public static <K, V> Codec<Map<K, V>> map(MapCodec<K> keyCodec, MapCodec<V> valueCodec) {
+        return Codec.mapPair(keyCodec, valueCodec).codec().listOf().xmap((List<Pair<K, V>> list) -> {
+                    return list.stream()
+                            .collect(ImmutableMap.<Pair<K, V>, K, V>toImmutableMap(Pair::getFirst, Pair::getSecond));
+                },
+                (Map<K, V> map) -> map.entrySet()
+                        .stream()
+                        .map((Map.Entry<K, V> entry) -> new Pair<>(entry.getKey(), entry.getValue()))
+                        .toList());
     }
 
     public static void registerEventHandlers() {
-        ServerLifecycleEvents.STARTED.register((MinecraftServer server) -> {
-            instance = server.overworld().getDataStorage().computeIfAbsent(DyeChannelManager.factory(),
-                    LinkedChests.MOD_ID
-            );
+        ServerLifecycleEvents.STARTED.register((MinecraftServer minecraftServer) -> {
+            instance = minecraftServer.overworld().getDataStorage().computeIfAbsent(DyeChannelManager.TYPE);
         });
-        ServerLifecycleEvents.STOPPED.register((MinecraftServer server) -> {
+        ServerLifecycleEvents.STOPPED.register((MinecraftServer minecraftServer) -> {
             instance = null;
         });
-        ServerTickEvents.END.register((MinecraftServer server) -> {
+        ServerTickEvents.END.register((MinecraftServer minecraftServer) -> {
             // the vanilla recheck runs as a block tick every five ticks while a chest is open
             // since this always runs on the server make it 20
-            if (server.getTickCount() % 20 == 0) {
+            if (minecraftServer.getTickCount() % 20 == 0) {
                 DyeChannelManager channelManager = instance;
                 if (channelManager != null) {
-                    channelManager.channels.forEach((DyeChannel dyeChannel, DyeChannelStorage storage) -> {
-                        storage.openersCounter().recheckOpeners(dyeChannel, server);
+                    channelManager.dyeChannels.forEach((DyeChannel dyeChannel, DyeChannelStorage storage) -> {
+                        storage.openersCounter().recheckOpeners(dyeChannel, minecraftServer);
                     });
                 }
             }
@@ -88,14 +77,16 @@ public final class DyeChannelManager extends SavedData {
     public static DyeChannelStorage getStorage(DyeChannel dyeChannel) {
         DyeChannelManager channelManager = instance;
         if (channelManager != null) {
-            return channelManager.channels.computeIfAbsent(dyeChannel, DyeChannel::createStorage);
+            if (!channelManager.dyeChannels.containsKey(dyeChannel)) {
+                channelManager.setDirty();
+            }
+            return channelManager.dyeChannels.computeIfAbsent(dyeChannel, DyeChannel::createStorage);
         } else {
             return new DyeChannelStorage(3);
         }
     }
 
-    @Override
-    public boolean isDirty() {
-        return true;
+    private Map<DyeChannel, DyeChannelStorage> getDyeChannels() {
+        return this.dyeChannels;
     }
 }

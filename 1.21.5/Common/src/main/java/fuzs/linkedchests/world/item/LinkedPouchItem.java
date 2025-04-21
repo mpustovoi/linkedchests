@@ -6,7 +6,6 @@ import fuzs.linkedchests.world.inventory.LinkedMenu;
 import fuzs.linkedchests.world.level.block.LinkedChestBlock;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
-import fuzs.puzzleslib.api.core.v1.Proxy;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -16,11 +15,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-
-import java.util.List;
 
 public class LinkedPouchItem extends Item {
 
@@ -57,9 +53,7 @@ public class LinkedPouchItem extends Item {
         return InteractionResultHelper.sidedSuccess(itemInHand, level.isClientSide);
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        Component component = ((LinkedChestBlock) ModRegistry.LINKED_CHEST_BLOCK.value()).getDescriptionComponent();
-        tooltipComponents.addAll(Proxy.INSTANCE.splitTooltipLines(component));
+    public Component getDescriptionComponent() {
+        return ((LinkedChestBlock) ModRegistry.LINKED_CHEST_BLOCK.value()).getDescriptionComponent();
     }
 }

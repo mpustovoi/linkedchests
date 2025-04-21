@@ -57,7 +57,7 @@ public class LinkedChestSpecialRenderer implements SpecialModelRenderer<DyeChann
         @Override
         public SpecialModelRenderer<?> bake(EntityModelSet entityModelSet) {
             LinkedChestModel model = new LinkedChestModel(entityModelSet.bakeLayer(LinkedChestRendererImpl.LINKED_CHEST_MODEL_LAYER_LOCATION));
-            Material material = Sheets.chestMaterial(this.texture);
+            Material material = Sheets.CHEST_MAPPER.apply(this.texture);
             return new LinkedChestSpecialRenderer(model, material, this.openness);
         }
     }

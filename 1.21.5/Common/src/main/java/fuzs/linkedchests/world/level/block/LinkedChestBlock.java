@@ -5,7 +5,6 @@ import com.mojang.serialization.MapCodec;
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
-import fuzs.puzzleslib.api.core.v1.Proxy;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import fuzs.puzzleslib.api.util.v1.ShapesHelper;
 import net.minecraft.ChatFormatting;
@@ -23,9 +22,7 @@ import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -46,6 +43,7 @@ import java.util.function.Function;
 
 public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeProvider {
     public static final MapCodec<EnderChestBlock> CODEC = simpleCodec(LinkedChestBlock::new);
+    static final VoxelShape SHAPE = Block.column(14.0, 0.0, 14.0);
     static final VoxelShape LEFT_BUTTON_SHAPE = Block.box(4.0, 14.0, 6.0, 6.0, 15.0, 10.0);
     static final Map<Direction, VoxelShape> LEFT_BUTTON_SHAPES = ShapesHelper.rotateHorizontally(LEFT_BUTTON_SHAPE);
     static final VoxelShape MIDDLE_BUTTON_SHAPE = Block.box(7.0, 14.0, 6.0, 9.0, 15.0, 10.0);
@@ -57,7 +55,7 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
     static final Map<Direction, VoxelShape> SHAPES = Direction.Plane.HORIZONTAL.stream()
             .collect(Maps.<Direction, Direction, VoxelShape>toImmutableEnumMap(Function.identity(),
                     (Direction direction) -> {
-                        return Shapes.or(EnderChestBlock.SHAPE,
+                        return Shapes.or(SHAPE,
                                 LEFT_BUTTON_SHAPES.get(direction),
                                 MIDDLE_BUTTON_SHAPES.get(direction),
                                 RIGHT_BUTTON_SHAPES.get(direction),
@@ -80,7 +78,7 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return EnderChestBlock.SHAPE;
+        return SHAPE;
     }
 
     @Override
@@ -98,7 +96,7 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
             }
         }
 
-        return EnderChestBlock.SHAPE;
+        return SHAPE;
     }
 
     @Override
@@ -204,11 +202,6 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         // NO-OP
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.addAll(Proxy.INSTANCE.splitTooltipLines(this.getDescriptionComponent()));
     }
 
     public Component getDescriptionComponent() {

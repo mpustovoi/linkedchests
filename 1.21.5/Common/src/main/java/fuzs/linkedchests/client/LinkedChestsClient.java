@@ -12,7 +12,9 @@ import fuzs.linkedchests.client.renderer.item.properties.conditional.LinkedPouch
 import fuzs.linkedchests.client.renderer.item.properties.conditional.LinkedPouchPersonalModelProperty;
 import fuzs.linkedchests.client.renderer.special.LinkedChestSpecialRenderer;
 import fuzs.linkedchests.init.ModRegistry;
+import fuzs.linkedchests.world.item.LinkedPouchItem;
 import fuzs.linkedchests.world.level.block.HighlightShapeProvider;
+import fuzs.linkedchests.world.level.block.LinkedChestBlock;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.BlockEntityRenderersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.ItemModelsContext;
@@ -21,6 +23,7 @@ import fuzs.puzzleslib.api.client.core.v1.context.MenuScreensContext;
 import fuzs.puzzleslib.api.client.event.v1.ClientTickEvents;
 import fuzs.puzzleslib.api.client.event.v1.entity.player.ClientPlayerNetworkEvents;
 import fuzs.puzzleslib.api.client.event.v1.renderer.RenderHighlightCallback;
+import fuzs.puzzleslib.api.client.gui.v2.tooltip.ItemTooltipRegistry;
 import fuzs.puzzleslib.api.event.v1.core.EventResult;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
@@ -72,6 +75,12 @@ public class LinkedChestsClient implements ClientModConstructor {
             }
             return EventResult.PASS;
         });
+    }
+
+    @Override
+    public void onClientSetup() {
+        ItemTooltipRegistry.registerItemTooltip(LinkedChestBlock.class, LinkedChestBlock::getDescriptionComponent);
+        ItemTooltipRegistry.registerItemTooltip(LinkedPouchItem.class, LinkedPouchItem::getDescriptionComponent);
     }
 
     @Override

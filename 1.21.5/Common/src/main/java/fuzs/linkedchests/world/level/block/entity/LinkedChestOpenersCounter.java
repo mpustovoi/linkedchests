@@ -1,9 +1,9 @@
 package fuzs.linkedchests.world.level.block.entity;
 
-import fuzs.linkedchests.LinkedChests;
 import fuzs.linkedchests.network.UpdateLidControllerMessage;
 import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
-import fuzs.puzzleslib.api.network.v3.PlayerSet;
+import fuzs.puzzleslib.api.network.v4.MessageSender;
+import fuzs.puzzleslib.api.network.v4.PlayerSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.MinecraftServer;
@@ -34,15 +34,13 @@ public class LinkedChestOpenersCounter {
     protected void openerCountChanged(DyeChannel dyeChannel, MinecraftServer server, int openCount) {
         // vanilla uses a block event to synchronize the changed openers count, we need to send this to all connected clients though,
         // not just whoever is tracking a certain block
-        LinkedChests.NETWORK.sendMessage(PlayerSet.ofAll(server),
-                new UpdateLidControllerMessage(dyeChannel, openCount > 0)
-        );
+        MessageSender.broadcast(PlayerSet.ofAll(server), new UpdateLidControllerMessage(dyeChannel, openCount > 0));
     }
 
     protected boolean isOwnContainer(Player player) {
         return player.containerMenu instanceof ChestMenu chestMenu &&
-                chestMenu.getContainer() instanceof ListBackedContainer container && this.containerChecker.test(
-                container.getContainerItems());
+                chestMenu.getContainer() instanceof ListBackedContainer container &&
+                this.containerChecker.test(container.getContainerItems());
     }
 
     public void incrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer) {
@@ -52,9 +50,14 @@ public class LinkedChestOpenersCounter {
     public void incrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer, BlockPos pos, SoundSource soundSource) {
         ServerLevel serverLevel = serverPlayer.serverLevel();
         if (this.openCount++ == 0) {
-            serverLevel.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                    SoundEvents.ENDER_CHEST_OPEN, soundSource, 0.5F, serverLevel.random.nextFloat() * 0.1F + 0.9F
-            );
+            serverLevel.playSound(null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    SoundEvents.ENDER_CHEST_OPEN,
+                    soundSource,
+                    0.5F,
+                    serverLevel.random.nextFloat() * 0.1F + 0.9F);
             serverLevel.gameEvent(serverPlayer, GameEvent.CONTAINER_OPEN, pos);
             this.scheduleRecheck = true;
         }
@@ -69,9 +72,14 @@ public class LinkedChestOpenersCounter {
     public void decrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer, BlockPos pos, SoundSource soundSource) {
         ServerLevel serverLevel = serverPlayer.serverLevel();
         if (--this.openCount == 0) {
-            serverLevel.playSound(null, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                    SoundEvents.ENDER_CHEST_CLOSE, soundSource, 0.5F, serverLevel.random.nextFloat() * 0.1F + 0.9F
-            );
+            serverLevel.playSound(null,
+                    pos.getX() + 0.5,
+                    pos.getY() + 0.5,
+                    pos.getZ() + 0.5,
+                    SoundEvents.ENDER_CHEST_CLOSE,
+                    soundSource,
+                    0.5F,
+                    serverLevel.random.nextFloat() * 0.1F + 0.9F);
             serverLevel.gameEvent(serverPlayer, GameEvent.CONTAINER_CLOSE, pos);
         }
 
