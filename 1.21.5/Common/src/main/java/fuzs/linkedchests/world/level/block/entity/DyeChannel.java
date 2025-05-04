@@ -92,9 +92,9 @@ public record DyeChannel(DyeColor leftColor, DyeColor middleColor, DyeColor righ
         };
     }
 
-    public static int getContainerSize(boolean personalChannel) {
+    public static int getContainerSize(boolean isPersonalChannel) {
         int inventoryRows;
-        if (personalChannel) {
+        if (isPersonalChannel) {
             inventoryRows = LinkedChests.CONFIG.get(ServerConfig.class).personalInventoryRows;
         } else {
             inventoryRows = LinkedChests.CONFIG.get(ServerConfig.class).inventoryRows;

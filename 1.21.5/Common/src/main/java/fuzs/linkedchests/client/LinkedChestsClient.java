@@ -96,10 +96,7 @@ public class LinkedChestsClient implements ClientModConstructor {
 
     @Override
     public void onRegisterMenuScreens(MenuScreensContext context) {
-        context.registerMenuScreen(ModRegistry.LINKED_CHEST_MENU_TYPE.value(), ContainerScreen::new);
-        context.registerMenuScreen(ModRegistry.LINKED_POUCH_MENU_TYPE.value(), ContainerScreen::new);
-        context.registerMenuScreen(ModRegistry.PERSONAL_LINKED_CHEST_MENU_TYPE.value(), ContainerScreen::new);
-        context.registerMenuScreen(ModRegistry.PERSONAL_LINKED_POUCH_MENU_TYPE.value(), ContainerScreen::new);
+        context.registerMenuScreen(ModRegistry.LINKED_STORAGE_MENU_TYPE.value(), ContainerScreen::new);
     }
 
     @Override

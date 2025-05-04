@@ -42,26 +42,10 @@ public class ModRegistry {
             LinkedPouchItem::new,
             () -> new Item.Properties().stacksTo(1)
                     .component(DYE_CHANNEL_DATA_COMPONENT_TYPE.value(), DyeChannel.DEFAULT));
-    public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_CHEST_MENU_TYPE = REGISTRIES.registerMenuType(
-            "linked_chest",
-            () -> {
-                return LinkedMenu.createSupplier(false, false);
-            });
-    public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_POUCH_MENU_TYPE = REGISTRIES.registerMenuType(
-            "linked_pouch",
-            () -> {
-                return LinkedMenu.createSupplier(false, true);
-            });
-    public static final Holder.Reference<MenuType<LinkedMenu>> PERSONAL_LINKED_CHEST_MENU_TYPE = REGISTRIES.registerMenuType(
-            "personal_linked_chest",
-            () -> {
-                return LinkedMenu.createSupplier(true, false);
-            });
-    public static final Holder.Reference<MenuType<LinkedMenu>> PERSONAL_LINKED_POUCH_MENU_TYPE = REGISTRIES.registerMenuType(
-            "personal_linked_pouch",
-            () -> {
-                return LinkedMenu.createSupplier(true, true);
-            });
+    public static final Holder.Reference<MenuType<LinkedMenu>> LINKED_STORAGE_MENU_TYPE = REGISTRIES.registerMenuType(
+            "linked_storage",
+            LinkedMenu::new,
+            LinkedMenu.LinkedData.STREAM_CODEC);
     public static final Holder.Reference<RecipeSerializer<DyeChannelRecipe>> DYE_CHANNEL_RECIPE_SERIALIZER = REGISTRIES.register(
             Registries.RECIPE_SERIALIZER,
             "crafting_special_dye_channel",

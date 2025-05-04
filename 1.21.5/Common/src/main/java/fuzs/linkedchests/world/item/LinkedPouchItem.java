@@ -6,6 +6,7 @@ import fuzs.linkedchests.world.inventory.LinkedMenu;
 import fuzs.linkedchests.world.level.block.LinkedChestBlock;
 import fuzs.linkedchests.world.level.block.entity.DyeChannel;
 import fuzs.linkedchests.world.level.block.entity.LinkedChestBlockEntity;
+import fuzs.puzzleslib.api.container.v1.ContainerMenuHelper;
 import fuzs.puzzleslib.api.util.v1.InteractionResultHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -45,10 +46,12 @@ public class LinkedPouchItem extends Item {
         if (!level.isClientSide) {
             DyeChannel dyeChannel = itemInHand.getOrDefault(ModRegistry.DYE_CHANNEL_DATA_COMPONENT_TYPE.value(),
                     DyeChannel.DEFAULT);
-            player.openMenu(new SimpleMenuProvider((int containerId, Inventory inventory, Player player1) -> {
-                DyeChannelContainer container = new DyeChannelContainer(dyeChannel);
-                return new LinkedMenu(containerId, inventory, container, dyeChannel.uuid().isPresent(), true);
-            }, itemInHand.getHoverName()));
+            ContainerMenuHelper.openMenu(player,
+                    new SimpleMenuProvider((int containerId, Inventory inventory, Player playerX) -> {
+                        DyeChannelContainer container = new DyeChannelContainer(dyeChannel);
+                        return new LinkedMenu(containerId, inventory, container, true);
+                    }, itemInHand.getHoverName()),
+                    new LinkedMenu.LinkedData(dyeChannel.uuid().isPresent(), true));
         }
         return InteractionResultHelper.sidedSuccess(itemInHand, level.isClientSide);
     }

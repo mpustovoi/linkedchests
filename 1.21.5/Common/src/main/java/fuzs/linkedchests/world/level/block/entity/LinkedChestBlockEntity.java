@@ -5,6 +5,7 @@ import fuzs.linkedchests.client.handler.DyeChannelLidController;
 import fuzs.linkedchests.init.ModRegistry;
 import fuzs.linkedchests.world.inventory.LinkedMenu;
 import fuzs.puzzleslib.api.container.v1.ListBackedContainer;
+import fuzs.puzzleslib.api.container.v1.MenuProviderWithData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class LinkedChestBlockEntity extends BlockEntity implements ListBackedContainer, MenuProvider, LidBlockEntity {
+public class LinkedChestBlockEntity extends BlockEntity implements ListBackedContainer, MenuProvider, LidBlockEntity, MenuProviderWithData<LinkedMenu.LinkedData> {
     static final String KEY_DYE_CHANNEL = LinkedChests.id("dye_channel").toString();
     static final String KEY_LATCH_ITEM = LinkedChests.id("latch_item").toString();
 
@@ -107,6 +108,16 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     }
 
     @Override
+    public boolean stillValid(Player player) {
+        return Container.stillValidBlockEntity(this, player);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos blockPos, BlockState blockState) {
+        // NO-OP
+    }
+
+    @Override
     public void startOpen(Player player) {
         if (!this.remove && player instanceof ServerPlayer serverPlayer && !player.isSpectator()) {
             this.getStorage()
@@ -122,11 +133,6 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
                     .openersCounter()
                     .decrementOpeners(this.dyeChannel, serverPlayer, this.getBlockPos(), SoundSource.BLOCKS);
         }
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return Container.stillValidBlockEntity(this, player);
     }
 
     @Override
@@ -150,7 +156,12 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-        return new LinkedMenu(containerId, inventory, this, this.dyeChannel.uuid().isPresent(), false);
+        return new LinkedMenu(containerId, inventory, this, false);
+    }
+
+    @Override
+    public LinkedMenu.LinkedData getMenuData(@Nullable ServerPlayer serverPlayer) {
+        return new LinkedMenu.LinkedData(this.dyeChannel.uuid().isPresent(), false);
     }
 
     @Override

@@ -17,7 +17,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -171,13 +170,10 @@ public class LinkedChestBlock extends EnderChestBlock implements HighlightShapeP
                     return InteractionResultHelper.sidedSuccess(level.isClientSide);
                 }
             }
-        }
 
-        if (level instanceof ServerLevel serverLevel &&
-                !level.getBlockState(pos.above()).isRedstoneConductor(level, pos.above())) {
-            MenuProvider menuProvider = this.getMenuProvider(state, level, pos);
-            if (menuProvider != null) {
-                player.openMenu(menuProvider);
+            if (level instanceof ServerLevel serverLevel &&
+                    !level.getBlockState(pos.above()).isRedstoneConductor(level, pos.above())) {
+                player.openMenu(blockEntity);
                 PiglinAi.angerNearbyPiglins(serverLevel, player, true);
             }
         }
