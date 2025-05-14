@@ -23,7 +23,7 @@ public final class DyeChannelManager extends SavedData {
             DyeChannelStorage.CODEC).optionalFieldOf("dye_channels", Collections.emptyMap())
             .forGetter(DyeChannelManager::getDyeChannels)).apply(instance, DyeChannelManager::new));
     public static final SavedDataType<DyeChannelManager> TYPE = new SavedDataType<>(LinkedChests.id(
-            "dye_channel_manager").toString(), DyeChannelManager::new, CODEC, null);
+            "dye_channel_manager").toDebugFileName(), DyeChannelManager::new, CODEC, null);
     private static DyeChannelManager instance;
 
     private final Map<DyeChannel, DyeChannelStorage> dyeChannels;
