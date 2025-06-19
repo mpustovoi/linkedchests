@@ -48,8 +48,8 @@ public class LinkedChestOpenersCounter {
     }
 
     public void incrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer, BlockPos pos, SoundSource soundSource) {
-        ServerLevel serverLevel = serverPlayer.serverLevel();
         if (this.openCount++ == 0) {
+            ServerLevel serverLevel = serverPlayer.level();
             serverLevel.playSound(null,
                     pos.getX() + 0.5,
                     pos.getY() + 0.5,
@@ -62,7 +62,7 @@ public class LinkedChestOpenersCounter {
             this.scheduleRecheck = true;
         }
 
-        this.openerCountChanged(dyeChannel, serverLevel.getServer(), this.openCount);
+        this.openerCountChanged(dyeChannel, serverPlayer.getServer(), this.openCount);
     }
 
     public void decrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer) {
@@ -70,8 +70,8 @@ public class LinkedChestOpenersCounter {
     }
 
     public void decrementOpeners(DyeChannel dyeChannel, ServerPlayer serverPlayer, BlockPos pos, SoundSource soundSource) {
-        ServerLevel serverLevel = serverPlayer.serverLevel();
         if (--this.openCount == 0) {
+            ServerLevel serverLevel = serverPlayer.level();
             serverLevel.playSound(null,
                     pos.getX() + 0.5,
                     pos.getY() + 0.5,
@@ -83,7 +83,7 @@ public class LinkedChestOpenersCounter {
             serverLevel.gameEvent(serverPlayer, GameEvent.CONTAINER_CLOSE, pos);
         }
 
-        this.openerCountChanged(dyeChannel, serverLevel.getServer(), this.openCount);
+        this.openerCountChanged(dyeChannel, serverPlayer.getServer(), this.openCount);
     }
 
     public void recheckOpeners(DyeChannel dyeChannel, MinecraftServer server) {

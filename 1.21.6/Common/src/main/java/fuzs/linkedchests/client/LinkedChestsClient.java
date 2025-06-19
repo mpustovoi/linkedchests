@@ -52,8 +52,8 @@ public class LinkedChestsClient implements ClientModConstructor {
             if (hitResult.getType() == HitResult.Type.BLOCK) {
                 BlockPos blockPos = ((BlockHitResult) hitResult).getBlockPos();
                 BlockState blockState = level.getBlockState(blockPos);
-                if (!blockState.isAir() && level.getWorldBorder().isWithinBounds(blockPos) &&
-                        blockState.getBlock() instanceof HighlightShapeProvider block) {
+                if (!blockState.isAir() && level.getWorldBorder().isWithinBounds(blockPos)
+                        && blockState.getBlock() instanceof HighlightShapeProvider block) {
                     VoxelShape voxelShape = block.getHighlightShape(blockState,
                             level,
                             blockPos,
@@ -79,8 +79,9 @@ public class LinkedChestsClient implements ClientModConstructor {
 
     @Override
     public void onClientSetup() {
-        ItemTooltipRegistry.registerItemTooltip(LinkedChestBlock.class, LinkedChestBlock::getDescriptionComponent);
-        ItemTooltipRegistry.registerItemTooltip(LinkedPouchItem.class, LinkedPouchItem::getDescriptionComponent);
+        ItemTooltipRegistry.BLOCK.registerItemTooltip(LinkedChestBlock.class,
+                LinkedChestBlock::getDescriptionComponent);
+        ItemTooltipRegistry.ITEM.registerItemTooltip(LinkedPouchItem.class, LinkedPouchItem::getDescriptionComponent);
     }
 
     @Override

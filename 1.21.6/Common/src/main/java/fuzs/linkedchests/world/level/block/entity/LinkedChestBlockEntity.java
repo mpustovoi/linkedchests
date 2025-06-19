@@ -25,6 +25,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LidBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -43,17 +45,17 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     }
 
     @Override
-    public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.loadAdditional(compoundTag, registries);
-        this.dyeChannel = compoundTag.read(KEY_DYE_CHANNEL, DyeChannel.CODEC).orElse(DyeChannel.DEFAULT);
-        this.latchItem = compoundTag.read(KEY_LATCH_ITEM, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+    public void loadAdditional(ValueInput valueInput) {
+        super.loadAdditional(valueInput);
+        this.dyeChannel = valueInput.read(KEY_DYE_CHANNEL, DyeChannel.CODEC).orElse(DyeChannel.DEFAULT);
+        this.latchItem = valueInput.read(KEY_LATCH_ITEM, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
     }
 
     @Override
-    public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registries) {
-        super.saveAdditional(compoundTag, registries);
-        compoundTag.store(KEY_DYE_CHANNEL, DyeChannel.CODEC, this.dyeChannel);
-        compoundTag.store(KEY_LATCH_ITEM, ItemStack.OPTIONAL_CODEC, this.latchItem);
+    public void saveAdditional(ValueOutput valueOutput) {
+        super.saveAdditional(valueOutput);
+        valueOutput.store(KEY_DYE_CHANNEL, DyeChannel.CODEC, this.dyeChannel);
+        valueOutput.store(KEY_LATCH_ITEM, ItemStack.OPTIONAL_CODEC, this.latchItem);
     }
 
     public DyeChannel getDyeChannel() {
@@ -177,7 +179,7 @@ public class LinkedChestBlockEntity extends BlockEntity implements ListBackedCon
     }
 
     @Override
-    public void removeComponentsFromTag(CompoundTag tag) {
-        tag.remove(KEY_DYE_CHANNEL);
+    public void removeComponentsFromTag(ValueOutput valueOutput) {
+        valueOutput.discard(KEY_DYE_CHANNEL);
     }
 }

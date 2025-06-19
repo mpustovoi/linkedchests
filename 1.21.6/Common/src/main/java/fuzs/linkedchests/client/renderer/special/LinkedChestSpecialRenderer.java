@@ -15,6 +15,9 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Vector3f;
+
+import java.util.Set;
 
 public class LinkedChestSpecialRenderer implements SpecialModelRenderer<DyeChannel> {
     private final LinkedChestRendererImpl renderer;
@@ -32,6 +35,13 @@ public class LinkedChestSpecialRenderer implements SpecialModelRenderer<DyeChann
         this.renderer.extractRenderState(this.material, dyeChannel);
         this.renderer.model.setupAnim(this.openness);
         this.renderer.renderModel(poseStack, bufferSource, packedLight, packedOverlay);
+    }
+
+    @Override
+    public void getExtents(Set<Vector3f> set) {
+        PoseStack poseStack = new PoseStack();
+        this.renderer.model.setupAnim(this.openness);
+        this.renderer.model.root().getExtentsForGui(poseStack, set);
     }
 
     @Override
